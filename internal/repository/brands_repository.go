@@ -3,6 +3,7 @@ package repository
 import (
 	"Brands/internal/dto"
 	"context"
+	"fmt"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"time"
 )
@@ -32,16 +33,27 @@ func (r *BrandRepository) Create(ctx context.Context, brand *dto.Brand) (int64, 
 
 // GetByID получает бренд по ID
 func (r *BrandRepository) GetByID(ctx context.Context, id int64) (*dto.Brand, error) {
-	query := `
-		SELECT id, name, link, description, logo_url, cover_image_url, founded_year, origin_country, popularity, is_premium, is_upcoming, is_deleted, created_at, updated_at
-		FROM brands WHERE id = $1 AND is_deleted = false`
-	brand := dto.Brand{}
-	err := r.pool.QueryRow(ctx, query, id).Scan(
-		&brand.ID, &brand.Name, &brand.Link, &brand.Description, &brand.LogoURL,
-		&brand.CoverImageURL, &brand.FoundedYear, &brand.OriginCountry, &brand.Popularity,
-		&brand.IsPremium, &brand.IsUpcoming, &brand.IsDeleted, &brand.CreatedAt, &brand.UpdatedAt,
-	)
-	return &brand, err
+	brand := &dto.Brand{}
+	row := r.pool.QueryRow(ctx, `
+        SELECT id, name, link, description, logo_url, cover_image_url, founded_year, 
+               origin_country, popularity, is_premium, is_upcoming, is_deleted, created_at, updated_at
+        FROM brands
+        WHERE id = $1
+    `, id)
+
+	err := row.Scan(&brand.ID, &brand.Name, &brand.Link, &brand.Description, &brand.LogoURL, &brand.CoverImageURL,
+		&brand.FoundedYear, &brand.OriginCountry, &brand.Popularity, &brand.IsPremium, &brand.IsUpcoming,
+		&brand.IsDeleted, &brand.CreatedAt, &brand.UpdatedAt)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if brand.IsDeleted {
+		return nil, fmt.Errorf("brand has been soft-deleted") // Возвращаем ошибку, если бренд удалён
+	}
+
+	return brand, nil
 }
 
 // Update обновляет данные бренда

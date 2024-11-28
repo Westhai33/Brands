@@ -58,7 +58,13 @@ func (r *ModelRepository) GetByID(ctx context.Context, id int64) (*dto.Model, er
 		&model.ID, &model.BrandID, &model.Name, &model.ReleaseDate, &model.IsUpcoming,
 		&model.IsLimited, &model.IsDeleted, &model.CreatedAt, &model.UpdatedAt,
 	)
-	return &model, err
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &model, nil
 }
 
 // Update обновляет данные модели

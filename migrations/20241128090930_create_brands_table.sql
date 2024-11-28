@@ -12,6 +12,7 @@ CREATE TABLE brands (
                         popularity INTEGER DEFAULT 0,
                         is_premium BOOLEAN DEFAULT FALSE,
                         is_upcoming BOOLEAN DEFAULT FALSE,
+                        is_deleted BOOLEAN DEFAULT FALSE,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

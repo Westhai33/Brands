@@ -15,6 +15,7 @@ type Brand struct {
 	Popularity    int       `json:"popularity"`      // Индекс популярности
 	IsPremium     bool      `json:"is_premium"`      // Флаг премиального бренда
 	IsUpcoming    bool      `json:"is_upcoming"`     // Флаг "Скоро"
+	IsDeleted     bool      `json:"is_deleted"`      // Флаг удаления
 	CreatedAt     time.Time `json:"created_at"`      // Время создания
 	UpdatedAt     time.Time `json:"updated_at"`      // Время обновления
 }

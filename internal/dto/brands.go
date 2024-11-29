@@ -1,6 +1,10 @@
 package dto
 
-import "time"
+import (
+	"encoding/json"
+	"fmt"
+	"time"
+)
 
 // Brand представляет сущность бренда
 type Brand struct {
@@ -18,4 +22,12 @@ type Brand struct {
 	IsDeleted     bool      `json:"is_deleted"`      // Флаг удаления
 	CreatedAt     time.Time `json:"created_at"`      // Время создания
 	UpdatedAt     time.Time `json:"updated_at"`      // Время обновления
+}
+
+func (b *Brand) ToJSON() (string, error) {
+	data, err := json.Marshal(b)
+	if err != nil {
+		return "", fmt.Errorf("ошибка преобразования в JSON: %w", err)
+	}
+	return string(data), nil
 }

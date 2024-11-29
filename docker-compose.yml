@@ -1,0 +1,34 @@
+version: '3.8'
+
+volumes:
+  postgresql_data:
+
+services:
+  brands:
+    image: postgres:15-alpine
+    container_name: postgreSQL
+    ports:
+      - "5432:5432"
+    restart: always
+    networks:
+      - brands_network
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+  app:
+    build: .
+    container_name: app_container
+    ports:
+      - "8080:8080"
+    networks:
+      - brands_network
+    depends_on:
+      - brands
+
+networks:
+  brands_network:
+    driver: bridge

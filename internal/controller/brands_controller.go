@@ -3,6 +3,7 @@ package controller
 import (
 	"Brands/internal/dto"
 	"Brands/internal/service"
+	"encoding/json"
 	"fmt"
 	"github.com/valyala/fasthttp"
 	"strconv"
@@ -201,4 +202,70 @@ func (c *BrandController) RestoreBrand(ctx *fasthttp.RequestCtx) {
 	// Отправляем успешный ответ
 	ctx.SetStatusCode(fasthttp.StatusOK)
 	ctx.SetBody([]byte(fmt.Sprintf("Бренд с ID %d успешно восстановлен", brandID)))
+}
+
+func (c *BrandController) GetAllBrands(ctx *fasthttp.RequestCtx) {
+	// Извлекаем параметры фильтрации из query-параметров
+	name := string(ctx.QueryArgs().Peek("name"))
+	originCountry := string(ctx.QueryArgs().Peek("origin_country"))
+	popularityStr := string(ctx.QueryArgs().Peek("popularity"))
+	popularity, err := strconv.Atoi(popularityStr)
+	if err != nil && popularityStr != "" {
+		ctx.Error(fmt.Sprintf("не удалось преобразовать popularity в число: %v", err), fasthttp.StatusBadRequest)
+		return
+	}
+
+	isPremiumStr := string(ctx.QueryArgs().Peek("is_premium"))
+	isPremium := false
+	if isPremiumStr != "" {
+		isPremium = isPremiumStr == "true"
+	}
+
+	// Логируем параметры фильтрации
+	fmt.Printf("Полученные параметры фильтрации: name=%s, origin_country=%s, popularity=%d, is_premium=%v\n", name, originCountry, popularity, isPremium)
+
+	// Формируем фильтры, добавляем параметры только если они не пустые
+	filter := make(map[string]interface{})
+
+	if name != "" {
+		filter["name"] = name
+	}
+
+	if originCountry != "" {
+		filter["origin_country"] = originCountry
+	}
+
+	if popularity != 0 {
+		filter["popularity"] = popularity
+	}
+
+	// Не добавляем is_premium, если его нет в запросе
+	if isPremiumStr != "" {
+		filter["is_premium"] = isPremium
+	}
+
+	// Получаем бренды с применением фильтров
+	brands, err := c.BrandService.GetAll(ctx, filter, "popularity DESC") // Пример сортировки
+	if err != nil {
+		ctx.Error(fmt.Sprintf("ошибка получения брендов: %v", err), fasthttp.StatusInternalServerError)
+		return
+	}
+
+	// Если бренды не найдены, возвращаем сообщение
+	if len(brands) == 0 {
+		ctx.SetStatusCode(fasthttp.StatusOK)
+		ctx.SetBody([]byte(`{"message": "No brands found with the given filters"}`))
+		return
+	}
+
+	// Преобразуем бренды в JSON с использованием стандартной библиотеки
+	brandsJSON, err := json.Marshal(brands)
+	if err != nil {
+		ctx.Error(fmt.Sprintf("ошибка преобразования брендов в JSON: %v", err), fasthttp.StatusInternalServerError)
+		return
+	}
+
+	// Отправляем список брендов в теле ответа
+	ctx.SetStatusCode(fasthttp.StatusOK)
+	ctx.SetBody(brandsJSON)
 }

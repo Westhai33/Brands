@@ -10,6 +10,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type BrandAPI struct {
@@ -158,12 +159,38 @@ func (api *BrandAPI) RestoreBrand(ctx *fasthttp.RequestCtx) {
 	ctx.Response.SetBodyString("Brand restored successfully")
 }
 
+// Преобразует строку фильтрации в map
+func parseFilter(filterStr string) (map[string]interface{}, error) {
+	filter := make(map[string]interface{})
+	if filterStr != "" {
+		// Пример: filter="name=Apple&popularity=5"
+		pairs := strings.Split(filterStr, "&")
+		for _, pair := range pairs {
+			parts := strings.Split(pair, "=")
+			if len(parts) != 2 {
+				return nil, fmt.Errorf("invalid filter format")
+			}
+			filter[parts[0]] = parts[1] // Параметры фильтра: ключ=значение
+		}
+	}
+	return filter, nil
+}
+
 // Эндпоинт для получения всех брендов с фильтрацией и сортировкой
 func (api *BrandAPI) GetAllBrands(ctx *fasthttp.RequestCtx) {
-	filter := string(ctx.QueryArgs().Peek("filter"))
+	// Получаем фильтр и сортировку из query-параметров
+	filterStr := string(ctx.QueryArgs().Peek("filter"))
 	sort := string(ctx.QueryArgs().Peek("sort"))
 
-	// Вызов метода GetAll из сервиса
+	// Преобразуем строку фильтрации в map
+	filter, err := parseFilter(filterStr)
+	if err != nil {
+		ctx.Response.SetStatusCode(http.StatusBadRequest)
+		ctx.Response.SetBodyString(fmt.Sprintf("Invalid filter format: %v", err))
+		return
+	}
+
+	// Вызов метода GetAll из сервиса с фильтрами и сортировкой
 	brands, err := api.BrandService.GetAll(ctx, filter, sort)
 	if err != nil {
 		ctx.Response.SetStatusCode(http.StatusInternalServerError)
@@ -171,6 +198,7 @@ func (api *BrandAPI) GetAllBrands(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	// Преобразуем список брендов в JSON
 	data, err := json.Marshal(brands)
 	if err != nil {
 		ctx.Response.SetStatusCode(http.StatusInternalServerError)
@@ -178,14 +206,24 @@ func (api *BrandAPI) GetAllBrands(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	// Отправляем список брендов в ответ
 	ctx.Response.SetStatusCode(http.StatusOK)
 	ctx.Response.SetBody(data)
 }
 
 // Эндпоинт для поиска брендов по фильтру
 func (api *BrandAPI) SearchBrands(ctx *fasthttp.RequestCtx) {
-	filter := string(ctx.QueryArgs().Peek("filter"))
+	// Получаем фильтр и сортировку из query-параметров
+	filterStr := string(ctx.QueryArgs().Peek("filter"))
 	sort := string(ctx.QueryArgs().Peek("sort"))
+
+	// Преобразуем строку фильтрации в map
+	filter, err := parseFilter(filterStr)
+	if err != nil {
+		ctx.Response.SetStatusCode(http.StatusBadRequest)
+		ctx.Response.SetBodyString(fmt.Sprintf("Invalid filter format: %v", err))
+		return
+	}
 
 	// Вызов метода GetAll с фильтром и сортировкой
 	brands, err := api.BrandService.GetAll(ctx, filter, sort)
@@ -195,6 +233,7 @@ func (api *BrandAPI) SearchBrands(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	// Преобразуем результаты в JSON
 	data, err := json.Marshal(brands)
 	if err != nil {
 		ctx.Response.SetStatusCode(http.StatusInternalServerError)
@@ -202,6 +241,7 @@ func (api *BrandAPI) SearchBrands(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	// Отправляем данные брендов в ответ
 	ctx.Response.SetStatusCode(http.StatusOK)
 	ctx.Response.SetBody(data)
 }

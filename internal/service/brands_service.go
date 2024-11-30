@@ -71,8 +71,8 @@ func (s *BrandService) Restore(ctx context.Context, id int64) error {
 }
 
 // GetAll получает все бренды с фильтрацией и сортировкой
-func (s *BrandService) GetAll(ctx context.Context, filter, sort string) ([]dto.Brand, error) {
-	brands, err := s.repo.GetAll(ctx, filter, sort)
+func (s *BrandService) GetAll(ctx context.Context, filter map[string]interface{}, sortBy string) ([]dto.Brand, error) {
+	brands, err := s.repo.GetAll(ctx, filter, sortBy)
 	if err != nil {
 		return nil, err
 	}

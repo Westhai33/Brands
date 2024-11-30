@@ -20,7 +20,7 @@ func main() {
 	// Задаем параметры для подключения к базе данных
 	dbName := "postgres"     // Имя базы данных
 	dbUser := "postgres"     // Имя пользователя
-	dbPassword := "postgres" // Пароль пользователя // Имя контейнера с базой данных в Docker Compose (или хост)
+	dbPassword := "postgres" // Пароль пользователя
 	dbPort := 5432           // Порт базы данных
 
 	// Формируем строку подключения
@@ -48,6 +48,7 @@ func main() {
 	r.POST("/brands", brandController.CreateBrand)
 	r.PUT("/brands/{id}", brandController.UpdateBrand)
 	r.GET("/brands/{id}", brandController.GetBrandByID)
+	r.GET("/brands", brandController.GetAllBrands) // Добавил маршрут для получения всех брендов
 	r.DELETE("/brands/{id}", brandController.SoftDeleteBrand)
 	r.PATCH("/brands/{id}/restore", brandController.RestoreBrand)
 

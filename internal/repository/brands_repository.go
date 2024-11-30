@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"strings"
 	"time"
 )
 
@@ -86,33 +87,87 @@ func (r *BrandRepository) Restore(ctx context.Context, id int64) error {
 }
 
 // GetAll получает все бренды с фильтрацией и сортировкой
-func (r *BrandRepository) GetAll(ctx context.Context, filter string, sort string) ([]dto.Brand, error) {
-	query := `
-		SELECT id, name, link, description, logo_url, cover_image_url, founded_year, origin_country, popularity, is_premium, is_upcoming, is_deleted, created_at, updated_at
-		FROM brands
-		WHERE is_deleted = false AND ($1 = '' OR name ILIKE '%' || $1 || '%')
-		ORDER BY 
-		    CASE WHEN $2 = 'popularity' THEN popularity END DESC,
-		    CASE WHEN $2 = 'founded_year' THEN founded_year END DESC,
-		    name ASC`
-	rows, err := r.pool.Query(ctx, query, filter, sort)
+func (r *BrandRepository) GetAll(ctx context.Context, filter map[string]interface{}, sortBy string) ([]dto.Brand, error) {
+	var queryBuilder strings.Builder
+	var args []interface{}
+	argCounter := 1
+
+	// Начинаем строить запрос
+	queryBuilder.WriteString("SELECT id, name, link, description, logo_url, cover_image_url, founded_year, origin_country, popularity, is_premium, is_upcoming, created_at, updated_at FROM brands WHERE 1=1")
+
+	// Логируем фильтры
+	fmt.Printf("Filter params: %v\n", filter)
+
+	// Добавляем фильтры в запрос
+	if name, ok := filter["name"]; ok && name != "" {
+		queryBuilder.WriteString(fmt.Sprintf(" AND name ILIKE $%d", argCounter))
+		args = append(args, "%"+name.(string)+"%")
+		argCounter++
+	}
+
+	if originCountry, ok := filter["origin_country"]; ok && originCountry != "" {
+		queryBuilder.WriteString(fmt.Sprintf(" AND origin_country = $%d", argCounter))
+		args = append(args, originCountry.(string))
+		argCounter++
+	}
+
+	if popularity, ok := filter["popularity"]; ok && popularity != 0 {
+		queryBuilder.WriteString(fmt.Sprintf(" AND popularity = $%d", argCounter))
+		args = append(args, popularity)
+		argCounter++
+	}
+
+	if isPremium, ok := filter["is_premium"]; ok {
+		if isPremiumBool, ok := isPremium.(bool); ok {
+			queryBuilder.WriteString(fmt.Sprintf(" AND is_premium = $%d", argCounter))
+			args = append(args, isPremiumBool)
+			argCounter++
+		}
+	}
+
+	// Логируем сгенерированный запрос и аргументы
+	fmt.Printf("Generated query: %s\n", queryBuilder.String())
+	fmt.Printf("Query args: %v\n", args)
+
+	// Выполняем запрос
+	rows, err := r.pool.Query(ctx, queryBuilder.String(), args...)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error executing query: %v", err)
 	}
 	defer rows.Close()
 
+	// Преобразуем строки в бренды
 	var brands []dto.Brand
 	for rows.Next() {
 		var brand dto.Brand
-		err := rows.Scan(
-			&brand.ID, &brand.Name, &brand.Link, &brand.Description, &brand.LogoURL,
-			&brand.CoverImageURL, &brand.FoundedYear, &brand.OriginCountry, &brand.Popularity,
-			&brand.IsPremium, &brand.IsUpcoming, &brand.IsDeleted, &brand.CreatedAt, &brand.UpdatedAt,
-		)
-		if err != nil {
-			return nil, err
+		// Исключаем is_deleted из метода rows.Scan
+		if err := rows.Scan(
+			&brand.ID,
+			&brand.Name,
+			&brand.Link,
+			&brand.Description,
+			&brand.LogoURL,
+			&brand.CoverImageURL,
+			&brand.FoundedYear,
+			&brand.OriginCountry,
+			&brand.Popularity,
+			&brand.IsPremium,
+			&brand.IsUpcoming,
+			&brand.CreatedAt,
+			&brand.UpdatedAt); err != nil {
+			return nil, fmt.Errorf("error scanning row: %v", err)
 		}
 		brands = append(brands, brand)
 	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating over rows: %v", err)
+	}
+
+	// Если бренды не найдены, возвращаем пустой массив
+	if len(brands) == 0 {
+		fmt.Println("No brands found with the given filters")
+	}
+
 	return brands, nil
 }

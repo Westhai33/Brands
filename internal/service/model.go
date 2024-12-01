@@ -42,51 +42,55 @@ func (s *ModelService) Create(ctx context.Context, model *dto.Model) (int64, err
 		return 0, err
 	}
 
-	resultChan := make(chan int64, 1)
-	errorChan := make(chan error, 1)
+	task := make(chan struct {
+		id  int64
+		err error
+	}, 1)
 
-	s.workerPool.SubmitTask(func() {
+	s.workerPool.Submit(func(workerID int) {
+		zerohook.Logger.Info().Int("worker_id", workerID).Msg("Executing Create operation")
 		id, err := s.repo.Create(ctx, model)
-		if err != nil {
-			zerohook.Logger.Error().Err(err).Msg("Failed to create model in repository")
-			errorChan <- err
-			return
-		}
-		zerohook.Logger.Info().Int64("model_id", id).Msg("Model created successfully")
-		resultChan <- id
+		task <- struct {
+			id  int64
+			err error
+		}{id: id, err: err}
+		close(task)
 	})
 
-	select {
-	case err := <-errorChan:
-		return 0, err
-	case id := <-resultChan:
-		return id, nil
+	result := <-task
+	if result.err != nil {
+		zerohook.Logger.Error().Err(result.err).Msg("Failed to create model in repository")
+		return 0, result.err
 	}
+	zerohook.Logger.Info().Int64("model_id", result.id).Msg("Model created successfully")
+	return result.id, nil
 }
 
 // GetByID получает модель по ID
 func (s *ModelService) GetByID(ctx context.Context, id int64) (*dto.Model, error) {
 	zerohook.Logger.Info().Int64("model_id", id).Msg("Starting GetByID operation")
-	resultChan := make(chan *dto.Model, 1)
-	errorChan := make(chan error, 1)
+	task := make(chan struct {
+		model *dto.Model
+		err   error
+	}, 1)
 
-	s.workerPool.SubmitTask(func() {
+	s.workerPool.Submit(func(workerID int) {
+		zerohook.Logger.Info().Int("worker_id", workerID).Msg("Executing GetByID operation")
 		model, err := s.repo.GetByID(ctx, id)
-		if err != nil {
-			zerohook.Logger.Error().Err(err).Int64("model_id", id).Msg("Failed to get model in repository")
-			errorChan <- err
-			return
-		}
-		zerohook.Logger.Info().Interface("model", model).Msg("Model retrieved successfully")
-		resultChan <- model
+		task <- struct {
+			model *dto.Model
+			err   error
+		}{model: model, err: err}
+		close(task)
 	})
 
-	select {
-	case err := <-errorChan:
-		return nil, err
-	case model := <-resultChan:
-		return model, nil
+	result := <-task
+	if result.err != nil {
+		zerohook.Logger.Error().Err(result.err).Int64("model_id", id).Msg("Failed to get model in repository")
+		return nil, result.err
 	}
+	zerohook.Logger.Info().Interface("model", result.model).Msg("Model retrieved successfully")
+	return result.model, nil
 }
 
 // Update обновляет данные модели
@@ -98,78 +102,89 @@ func (s *ModelService) Update(ctx context.Context, model *dto.Model) error {
 		return err
 	}
 
-	errorChan := make(chan error, 1)
+	task := make(chan error, 1)
 
-	s.workerPool.SubmitTask(func() {
+	s.workerPool.Submit(func(workerID int) {
+		zerohook.Logger.Info().Int("worker_id", workerID).Msg("Executing Update operation")
 		err := s.repo.Update(ctx, model)
-		if err != nil {
-			zerohook.Logger.Error().Err(err).Msg("Failed to update model in repository")
-		} else {
-			zerohook.Logger.Info().Int64("model_id", model.ID).Msg("Model updated successfully")
-		}
-		errorChan <- err
+		task <- err
+		close(task)
 	})
 
-	return <-errorChan
+	err := <-task
+	if err != nil {
+		zerohook.Logger.Error().Err(err).Msg("Failed to update model in repository")
+		return err
+	}
+	zerohook.Logger.Info().Int64("model_id", model.ID).Msg("Model updated successfully")
+	return nil
 }
 
 // SoftDelete мягко удаляет модель
 func (s *ModelService) SoftDelete(ctx context.Context, id int64) error {
 	zerohook.Logger.Info().Int64("model_id", id).Msg("Starting SoftDelete operation")
-	errorChan := make(chan error, 1)
+	task := make(chan error, 1)
 
-	s.workerPool.SubmitTask(func() {
+	s.workerPool.Submit(func(workerID int) {
+		zerohook.Logger.Info().Int("worker_id", workerID).Msg("Executing SoftDelete operation")
 		err := s.repo.SoftDelete(ctx, id)
-		if err != nil {
-			zerohook.Logger.Error().Err(err).Int64("model_id", id).Msg("Failed to soft delete model in repository")
-		} else {
-			zerohook.Logger.Info().Int64("model_id", id).Msg("Model soft deleted successfully")
-		}
-		errorChan <- err
+		task <- err
+		close(task)
 	})
 
-	return <-errorChan
+	err := <-task
+	if err != nil {
+		zerohook.Logger.Error().Err(err).Int64("model_id", id).Msg("Failed to soft delete model in repository")
+		return err
+	}
+	zerohook.Logger.Info().Int64("model_id", id).Msg("Model soft deleted successfully")
+	return nil
 }
 
 // Restore восстанавливает мягко удалённую модель
 func (s *ModelService) Restore(ctx context.Context, id int64) error {
 	zerohook.Logger.Info().Int64("model_id", id).Msg("Starting Restore operation")
-	errorChan := make(chan error, 1)
+	task := make(chan error, 1)
 
-	s.workerPool.SubmitTask(func() {
+	s.workerPool.Submit(func(workerID int) {
+		zerohook.Logger.Info().Int("worker_id", workerID).Msg("Executing Restore operation")
 		err := s.repo.Restore(ctx, id)
-		if err != nil {
-			zerohook.Logger.Error().Err(err).Int64("model_id", id).Msg("Failed to restore model in repository")
-		} else {
-			zerohook.Logger.Info().Int64("model_id", id).Msg("Model restored successfully")
-		}
-		errorChan <- err
+		task <- err
+		close(task)
 	})
 
-	return <-errorChan
+	err := <-task
+	if err != nil {
+		zerohook.Logger.Error().Err(err).Int64("model_id", id).Msg("Failed to restore model in repository")
+		return err
+	}
+	zerohook.Logger.Info().Int64("model_id", id).Msg("Model restored successfully")
+	return nil
 }
 
 // GetAll получает все модели с фильтрацией и сортировкой
 func (s *ModelService) GetAll(ctx context.Context, filter map[string]interface{}, sort string) ([]dto.Model, error) {
 	zerohook.Logger.Info().Interface("filter", filter).Str("sort", sort).Msg("Starting GetAll operation")
-	resultChan := make(chan []dto.Model, 1)
-	errorChan := make(chan error, 1)
+	task := make(chan struct {
+		models []dto.Model
+		err    error
+	}, 1)
 
-	s.workerPool.SubmitTask(func() {
+	s.workerPool.Submit(func(workerID int) {
+		zerohook.Logger.Info().Int("worker_id", workerID).Msg("Executing GetAll operation")
 		models, err := s.repo.GetAll(ctx, filter, sort)
-		if err != nil {
-			zerohook.Logger.Error().Err(err).Msg("Failed to get all models in repository")
-			errorChan <- err
-			return
-		}
-		zerohook.Logger.Info().Int("models_count", len(models)).Msg("Models retrieved successfully")
-		resultChan <- models
+		task <- struct {
+			models []dto.Model
+			err    error
+		}{models: models, err: err}
+		close(task)
 	})
 
-	select {
-	case err := <-errorChan:
-		return nil, err
-	case models := <-resultChan:
-		return models, nil
+	result := <-task
+	if result.err != nil {
+		zerohook.Logger.Error().Err(result.err).Msg("Failed to get all models in repository")
+		return nil, result.err
 	}
+	zerohook.Logger.Info().Int("models_count", len(result.models)).Msg("Models retrieved successfully")
+	return result.models, nil
 }

@@ -63,8 +63,8 @@ func main() {
 	defer pgInstance.Close()
 
 	// Создание WorkerPool
-	wp := pool.NewWorkerPool(5) // Инициализация WorkerPool с 5 воркерами
-	defer wp.Close()
+	wp := pool.NewWorkerPool(ctx) // Инициализация нового WorkerPool
+	defer wp.Stop()
 
 	// Создание репозиториев
 	br, err := repository.NewBrandRepository(ctx, pgInstance.Pool(), zerohook.Logger)
@@ -94,7 +94,7 @@ func main() {
 	}
 
 	// Пример создания бренда с использованием WorkerPool
-	wp.SubmitTask(func() {
+	wp.Submit(func(workerID int) {
 		brand := &dto.Brand{
 			Name:          "SuperBrand",
 			Link:          "https://superbrand.com",
@@ -110,7 +110,7 @@ func main() {
 			CreatedAt:     time.Now(),
 			UpdatedAt:     time.Now(),
 		}
-		zerohook.Logger.Info().Interface("obj", brand).Send()
+		zerohook.Logger.Info().Interface("obj", brand).Int("worker_id", workerID).Send()
 		_, err := bs.Create(ctx, brand)
 		if err != nil {
 			zerohook.Logger.Error().Err(err).Msg("Failed to create brand asynchronously")
@@ -118,7 +118,7 @@ func main() {
 	})
 
 	// Пример создания модели с использованием WorkerPool
-	wp.SubmitTask(func() {
+	wp.Submit(func(workerID int) {
 		model := &dto.Model{
 			BrandID:     1, // Замените на реальный ID бренда
 			Name:        "Model X",
@@ -126,7 +126,7 @@ func main() {
 			IsUpcoming:  false,
 			IsLimited:   true,
 		}
-		zerohook.Logger.Info().Interface("obj", model).Send()
+		zerohook.Logger.Info().Interface("obj", model).Int("worker_id", workerID).Send()
 		_, err := ms.Create(ctx, model)
 		if err != nil {
 			zerohook.Logger.Error().Err(err).Msg("Failed to create model asynchronously")
@@ -139,9 +139,6 @@ func main() {
 			zerohook.Logger.Fatal().Err(err)
 		}
 	}()
-
-	// Ожидание завершения задач
-	wp.Wait()
 
 	// Завершение программы
 	quit := make(chan os.Signal, 1)

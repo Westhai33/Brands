@@ -8,6 +8,7 @@ import (
 	"Brands/internal/pg"
 	"Brands/internal/repository"
 	"Brands/internal/service"
+	"Brands/pkg/pool"
 	"Brands/pkg/yamlreader"
 	"os/signal"
 	"syscall"
@@ -61,6 +62,10 @@ func main() {
 	}
 	defer pgInstance.Close()
 
+	// Создание WorkerPool
+	wp := pool.NewWorkerPool(5) // Инициализация WorkerPool с 5 воркерами
+	defer wp.Close()
+
 	// Создание репозиториев
 	br, err := repository.NewBrandRepository(ctx, pgInstance.Pool(), zerohook.Logger)
 	if err != nil {
@@ -73,9 +78,9 @@ func main() {
 		return
 	}
 
-	// Создание сервисов
-	bs := service.NewBrandService(br)
-	ms := service.NewModelService(mr)
+	// Создание сервисов с передачей WorkerPool
+	bs := service.NewBrandService(br, wp)
+	ms := service.NewModelService(mr, wp)
 
 	// Создание хендлеров
 	bh := handler.NewBrandHandler(bs)
@@ -88,49 +93,57 @@ func main() {
 		return
 	}
 
-	// Пример создания бренда
-	brand := &dto.Brand{
-		Name:          "SuperBrand",
-		Link:          "https://superbrand.com",
-		Description:   "SuperBrand is known for its high-quality products and innovative designs.",
-		LogoURL:       "https://superbrand.com/logo.png",
-		CoverImageURL: "https://superbrand.com/cover.jpg",
-		FoundedYear:   1998,
-		OriginCountry: "USA",
-		Popularity:    85,
-		IsPremium:     true,
-		IsUpcoming:    false,
-		IsDeleted:     false,
-		CreatedAt:     time.Now(),
-		UpdatedAt:     time.Now(),
-	}
-	zerohook.Logger.Info().Interface("obj", brand).Send()
-	_, err = bs.Create(ctx, brand)
-	if err != nil {
-		zerohook.Logger.Fatal().Err(err)
-	}
+	// Пример создания бренда с использованием WorkerPool
+	wp.SubmitTask(func() {
+		brand := &dto.Brand{
+			Name:          "SuperBrand",
+			Link:          "https://superbrand.com",
+			Description:   "SuperBrand is known for its high-quality products and innovative designs.",
+			LogoURL:       "https://superbrand.com/logo.png",
+			CoverImageURL: "https://superbrand.com/cover.jpg",
+			FoundedYear:   1998,
+			OriginCountry: "USA",
+			Popularity:    85,
+			IsPremium:     true,
+			IsUpcoming:    false,
+			IsDeleted:     false,
+			CreatedAt:     time.Now(),
+			UpdatedAt:     time.Now(),
+		}
+		zerohook.Logger.Info().Interface("obj", brand).Send()
+		_, err := bs.Create(ctx, brand)
+		if err != nil {
+			zerohook.Logger.Error().Err(err).Msg("Failed to create brand asynchronously")
+		}
+	})
 
-	// Пример создания модели
-	model := &dto.Model{
-		BrandID:     brand.ID,
-		Name:        "Model X",
-		ReleaseDate: time.Now(),
-		IsUpcoming:  false,
-		IsLimited:   true,
-	}
-	zerohook.Logger.Info().Interface("obj", model).Send()
-	_, err = ms.Create(ctx, model)
-	if err != nil {
-		zerohook.Logger.Fatal().Err(err)
-	}
+	// Пример создания модели с использованием WorkerPool
+	wp.SubmitTask(func() {
+		model := &dto.Model{
+			BrandID:     1, // Замените на реальный ID бренда
+			Name:        "Model X",
+			ReleaseDate: time.Now(),
+			IsUpcoming:  false,
+			IsLimited:   true,
+		}
+		zerohook.Logger.Info().Interface("obj", model).Send()
+		_, err := ms.Create(ctx, model)
+		if err != nil {
+			zerohook.Logger.Error().Err(err).Msg("Failed to create model asynchronously")
+		}
+	})
 
 	// Запуск API-сервиса
-	err = apiService.Start(ctx)
-	if err != nil {
-		zerohook.Logger.Fatal().Err(err)
-		return
-	}
+	go func() {
+		if err := apiService.Start(ctx); err != nil {
+			zerohook.Logger.Fatal().Err(err)
+		}
+	}()
 
+	// Ожидание завершения задач
+	wp.Wait()
+
+	// Завершение программы
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit

@@ -3,6 +3,7 @@ package service
 import (
 	"Brands/internal/dto"
 	"Brands/internal/repository"
+	"Brands/pkg/pool"
 	"context"
 	"fmt"
 )
@@ -19,67 +20,128 @@ type ModelServiceInterface interface {
 
 // ModelService представляет слой сервиса для работы с моделями
 type ModelService struct {
-	repo *repository.ModelRepository
+	repo       *repository.ModelRepository
+	workerPool *pool.WorkerPool
 }
 
 // NewModelService создает новый экземпляр ModelService
-func NewModelService(repo *repository.ModelRepository) *ModelService {
-	return &ModelService{repo: repo}
+func NewModelService(repo *repository.ModelRepository, workerPool *pool.WorkerPool) *ModelService {
+	return &ModelService{
+		repo:       repo,
+		workerPool: workerPool,
+	}
 }
 
 // Create создает новую модель
 func (s *ModelService) Create(ctx context.Context, model *dto.Model) (int64, error) {
-	// Проверка входных данных (можно добавить дополнительные проверки)
 	if model.Name == "" {
 		return 0, fmt.Errorf("name is required")
 	}
 
-	// Вызов репозитория для создания модели
-	return s.repo.Create(ctx, model)
+	resultChan := make(chan int64, 1)
+	errorChan := make(chan error, 1)
+
+	s.workerPool.SubmitTask(func() {
+		id, err := s.repo.Create(ctx, model)
+		if err != nil {
+			errorChan <- err
+			return
+		}
+		resultChan <- id
+	})
+
+	select {
+	case err := <-errorChan:
+		return 0, err
+	case id := <-resultChan:
+		return id, nil
+	}
 }
 
 // GetByID получает модель по ID
 func (s *ModelService) GetByID(ctx context.Context, id int64) (*dto.Model, error) {
-	// Вызов репозитория для получения модели
-	model, err := s.repo.GetByID(ctx, id)
-	if err != nil {
+	resultChan := make(chan *dto.Model, 1)
+	errorChan := make(chan error, 1)
+
+	s.workerPool.SubmitTask(func() {
+		model, err := s.repo.GetByID(ctx, id)
+		if err != nil {
+			errorChan <- err
+			return
+		}
+		if model == nil {
+			errorChan <- fmt.Errorf("model with ID %d not found", id)
+			return
+		}
+		resultChan <- model
+	})
+
+	select {
+	case err := <-errorChan:
 		return nil, err
+	case model := <-resultChan:
+		return model, nil
 	}
-	if model == nil {
-		return nil, fmt.Errorf("model with ID %d not found", id)
-	}
-	return model, nil
 }
 
 // Update обновляет данные модели
 func (s *ModelService) Update(ctx context.Context, model *dto.Model) error {
-	// Проверка входных данных (можно добавить дополнительные проверки)
 	if model.Name == "" {
 		return fmt.Errorf("name is required")
 	}
 
-	// Вызов репозитория для обновления модели
-	return s.repo.Update(ctx, model)
+	errorChan := make(chan error, 1)
+
+	s.workerPool.SubmitTask(func() {
+		err := s.repo.Update(ctx, model)
+		errorChan <- err
+	})
+
+	return <-errorChan
 }
 
 // SoftDelete мягко удаляет модель
 func (s *ModelService) SoftDelete(ctx context.Context, id int64) error {
-	// Вызов репозитория для мягкого удаления модели
-	return s.repo.SoftDelete(ctx, id)
+	errorChan := make(chan error, 1)
+
+	s.workerPool.SubmitTask(func() {
+		err := s.repo.SoftDelete(ctx, id)
+		errorChan <- err
+	})
+
+	return <-errorChan
 }
 
 // Restore восстанавливает мягко удалённую модель
 func (s *ModelService) Restore(ctx context.Context, id int64) error {
-	// Вызов репозитория для восстановления модели
-	return s.repo.Restore(ctx, id)
+	errorChan := make(chan error, 1)
+
+	s.workerPool.SubmitTask(func() {
+		err := s.repo.Restore(ctx, id)
+		errorChan <- err
+	})
+
+	return <-errorChan
 }
 
 // GetAll получает все модели с фильтрацией и сортировкой
 func (s *ModelService) GetAll(ctx context.Context, filter map[string]interface{}, sortBy string) ([]dto.Model, error) {
-	// Вызов репозитория для получения всех моделей с учетом фильтров и сортировки
-	models, err := s.repo.GetAll(ctx, filter, sortBy)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get all models: %v", err)
+	resultChan := make(chan []dto.Model, 1)
+	errorChan := make(chan error, 1)
+
+	s.workerPool.SubmitTask(func() {
+		models, err := s.repo.GetAll(ctx, filter, sortBy)
+		if err != nil {
+			errorChan <- err
+			return
+		}
+		resultChan <- models
+	})
+
+	select {
+	case err := <-errorChan:
+		return nil, err
+	case models := <-resultChan:
+		return models, nil
 	}
-	return models, nil
 }

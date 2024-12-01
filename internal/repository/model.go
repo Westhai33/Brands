@@ -7,10 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rs/zerolog"
-
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/rs/zerolog"
 )
 
 type ModelRepository struct {
@@ -20,26 +19,32 @@ type ModelRepository struct {
 }
 
 func NewModelRepository(ctx context.Context, pool *pgxpool.Pool, logger zerolog.Logger) (*ModelRepository, error) {
-	c := &ModelRepository{ctx: ctx, pool: pool, log: logger}
-	return c, nil
+	return &ModelRepository{ctx: ctx, pool: pool, log: logger}, nil
 }
 
-// Проверяет, существует ли бренд с заданным ID
+// BrandExists проверяет, существует ли бренд с заданным ID
 func (r *ModelRepository) BrandExists(ctx context.Context, brandID int64) (bool, error) {
+	r.log.Info().Int64("brand_id", brandID).Msg("Checking if brand exists")
 	var exists bool
 	query := `SELECT EXISTS(SELECT 1 FROM brands WHERE id = $1 AND is_deleted = false)`
 	err := r.pool.QueryRow(ctx, query, brandID).Scan(&exists)
+	if err != nil {
+		r.log.Error().Err(err).Int64("brand_id", brandID).Msg("Failed to check if brand exists")
+	}
 	return exists, err
 }
 
 // Create создает новую модель
 func (r *ModelRepository) Create(ctx context.Context, model *dto.Model) (int64, error) {
+	r.log.Info().Str("operation", "Create").Interface("model", model).Msg("Creating a new model")
 	exists, err := r.BrandExists(ctx, model.BrandID)
 	if err != nil {
 		return 0, err
 	}
 	if !exists {
-		return 0, fmt.Errorf("brand with ID %d does not exist", model.BrandID)
+		err := fmt.Errorf("brand with ID %d does not exist", model.BrandID)
+		r.log.Warn().Int64("brand_id", model.BrandID).Msg(err.Error())
+		return 0, err
 	}
 
 	query := `
@@ -51,11 +56,18 @@ func (r *ModelRepository) Create(ctx context.Context, model *dto.Model) (int64, 
 		model.BrandID, model.Name, model.ReleaseDate, model.IsUpcoming,
 		model.IsLimited, now, now, false,
 	).Scan(&model.ID)
-	return model.ID, err
+	if err != nil {
+		r.log.Error().Err(err).Msg("Failed to create model")
+		return 0, err
+	}
+
+	r.log.Info().Int64("model_id", model.ID).Msg("Model created successfully")
+	return model.ID, nil
 }
 
 // GetByID получает модель по ID
 func (r *ModelRepository) GetByID(ctx context.Context, id int64) (*dto.Model, error) {
+	r.log.Info().Int64("model_id", id).Msg("Fetching model by ID")
 	query := `
 		SELECT id, brand_id, name, release_date, is_upcoming, is_limited, is_deleted, created_at, updated_at
 		FROM models WHERE id = $1 AND is_deleted = false`
@@ -66,21 +78,28 @@ func (r *ModelRepository) GetByID(ctx context.Context, id int64) (*dto.Model, er
 	)
 	if err != nil {
 		if err == pgx.ErrNoRows {
+			r.log.Warn().Int64("model_id", id).Msg("Model not found")
 			return nil, nil
 		}
+		r.log.Error().Err(err).Int64("model_id", id).Msg("Failed to fetch model by ID")
 		return nil, err
 	}
+
+	r.log.Info().Interface("model", model).Msg("Model fetched successfully")
 	return &model, nil
 }
 
 // Update обновляет данные модели
 func (r *ModelRepository) Update(ctx context.Context, model *dto.Model) error {
+	r.log.Info().Int64("model_id", model.ID).Msg("Updating model")
 	exists, err := r.BrandExists(ctx, model.BrandID)
 	if err != nil {
 		return err
 	}
 	if !exists {
-		return fmt.Errorf("brand with ID %d does not exist", model.BrandID)
+		err := fmt.Errorf("brand with ID %d does not exist", model.BrandID)
+		r.log.Warn().Int64("brand_id", model.BrandID).Msg(err.Error())
+		return err
 	}
 
 	query := `
@@ -89,38 +108,49 @@ func (r *ModelRepository) Update(ctx context.Context, model *dto.Model) error {
 		WHERE id = $1 AND is_deleted = false`
 	_, err = r.pool.Exec(ctx, query, model.ID, model.BrandID, model.Name, model.ReleaseDate,
 		model.IsUpcoming, model.IsLimited, time.Now())
-	return err
+	if err != nil {
+		r.log.Error().Err(err).Int64("model_id", model.ID).Msg("Failed to update model")
+		return err
+	}
+
+	r.log.Info().Int64("model_id", model.ID).Msg("Model updated successfully")
+	return nil
 }
 
 // SoftDelete мягко удаляет модель
 func (r *ModelRepository) SoftDelete(ctx context.Context, id int64) error {
+	r.log.Info().Int64("model_id", id).Msg("Soft deleting model")
 	query := `
 		UPDATE models SET is_deleted = true, updated_at = $2 WHERE id = $1`
 	_, err := r.pool.Exec(ctx, query, id, time.Now())
+	if err != nil {
+		r.log.Error().Err(err).Int64("model_id", id).Msg("Failed to soft delete model")
+	}
 	return err
 }
 
 // Restore восстанавливает мягко удалённую модель
 func (r *ModelRepository) Restore(ctx context.Context, id int64) error {
+	r.log.Info().Int64("model_id", id).Msg("Restoring model")
 	query := `
 		UPDATE models SET is_deleted = false, updated_at = $2 WHERE id = $1`
 	_, err := r.pool.Exec(ctx, query, id, time.Now())
+	if err != nil {
+		r.log.Error().Err(err).Int64("model_id", id).Msg("Failed to restore model")
+	}
 	return err
 }
 
 // GetAll получает все модели с фильтрацией и сортировкой
 func (r *ModelRepository) GetAll(ctx context.Context, filter map[string]interface{}, sortBy string) ([]dto.Model, error) {
+	r.log.Info().Interface("filter", filter).Str("sort", sortBy).Msg("Fetching all models")
+
 	var queryBuilder strings.Builder
 	var args []interface{}
 	argCounter := 1
 
-	// Начинаем строить запрос
 	queryBuilder.WriteString("SELECT id, brand_id, name, release_date, is_upcoming, is_limited, is_deleted, created_at, updated_at FROM models WHERE is_deleted = false")
 
-	// Логируем фильтры
-	fmt.Printf("Filter params: %v\n", filter)
-
-	// Добавляем фильтры в запрос
 	if name, ok := filter["name"]; ok && name != "" {
 		queryBuilder.WriteString(fmt.Sprintf(" AND name ILIKE $%d", argCounter))
 		args = append(args, "%"+name.(string)+"%")
@@ -149,7 +179,6 @@ func (r *ModelRepository) GetAll(ctx context.Context, filter map[string]interfac
 		}
 	}
 
-	// Обработка сортировки
 	if sortBy != "" {
 		if strings.HasPrefix(sortBy, "-") {
 			queryBuilder.WriteString(fmt.Sprintf(" ORDER BY %s DESC", strings.TrimPrefix(sortBy, "-")))
@@ -157,47 +186,34 @@ func (r *ModelRepository) GetAll(ctx context.Context, filter map[string]interfac
 			queryBuilder.WriteString(fmt.Sprintf(" ORDER BY %s ASC", sortBy))
 		}
 	} else {
-		queryBuilder.WriteString(" ORDER BY name ASC") // Сортировка по умолчанию
+		queryBuilder.WriteString(" ORDER BY name ASC")
 	}
 
-	// Логируем сгенерированный запрос и аргументы
-	fmt.Printf("Generated query: %s\n", queryBuilder.String())
-	fmt.Printf("Query args: %v\n", args)
-
-	// Выполняем запрос
 	rows, err := r.pool.Query(ctx, queryBuilder.String(), args...)
 	if err != nil {
-		return nil, fmt.Errorf("error executing query: %v", err)
+		r.log.Error().Err(err).Msg("Failed to execute GetAll query")
+		return nil, fmt.Errorf("error executing query: %w", err)
 	}
 	defer rows.Close()
 
-	// Преобразуем строки в модели
 	var models []dto.Model
 	for rows.Next() {
 		var model dto.Model
 		if err := rows.Scan(
-			&model.ID,
-			&model.BrandID,
-			&model.Name,
-			&model.ReleaseDate,
-			&model.IsUpcoming,
-			&model.IsLimited,
-			&model.IsDeleted,
-			&model.CreatedAt,
-			&model.UpdatedAt); err != nil {
-			return nil, fmt.Errorf("error scanning row: %v", err)
+			&model.ID, &model.BrandID, &model.Name, &model.ReleaseDate, &model.IsUpcoming, &model.IsLimited,
+			&model.IsDeleted, &model.CreatedAt, &model.UpdatedAt,
+		); err != nil {
+			r.log.Error().Err(err).Msg("Failed to scan row in GetAll")
+			return nil, fmt.Errorf("error scanning row: %w", err)
 		}
 		models = append(models, model)
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error iterating over rows: %v", err)
+	if rows.Err() != nil {
+		r.log.Error().Err(rows.Err()).Msg("Error iterating over rows in GetAll")
+		return nil, fmt.Errorf("error iterating over rows: %w", rows.Err())
 	}
 
-	// Если модели не найдены, возвращаем пустой массив
-	if len(models) == 0 {
-		fmt.Println("No models found with the given filters")
-	}
-
+	r.log.Info().Int("model_count", len(models)).Msg("GetAll models completed successfully")
 	return models, nil
 }

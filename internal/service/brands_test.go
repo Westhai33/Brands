@@ -4,9 +4,10 @@ import (
 	"Brands/internal/dto"
 	"Brands/test/mocks"
 	"context"
+	"testing"
+
 	"github.com/gojuno/minimock/v3"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestBrandService_Create_Success(t *testing.T) {

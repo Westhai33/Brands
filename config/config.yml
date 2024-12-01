@@ -1,5 +1,0 @@
-environment:
-  POSTGRES_DB: "brands"
-  POSTGRES_USER: "brands"
-  POSTGRES_PASSWORD: "pgpwdbrands"
-  REFNAME: "local"

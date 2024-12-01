@@ -2,11 +2,12 @@ package zerohook
 
 import (
 	"fmt"
-	"github.com/rs/zerolog/pkgerrors"
 	"os"
 	"runtime/debug"
 	"sync"
 	"time"
+
+	"github.com/rs/zerolog/pkgerrors"
 
 	"Brands/pkg/yamlenv"
 

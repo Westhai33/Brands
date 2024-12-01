@@ -4,23 +4,28 @@ import (
 	"Brands/internal/dto"
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"strings"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/rs/zerolog"
 )
 
 type BrandRepository struct {
+	ctx  context.Context
 	pool *pgxpool.Pool
+	log  zerolog.Logger
 }
 
-func NewBrandRepository(pool *pgxpool.Pool) *BrandRepository {
-	return &BrandRepository{pool: pool}
+func NewBrandRepository(ctx context.Context, pool *pgxpool.Pool, logger zerolog.Logger) (*BrandRepository, error) {
+	c := &BrandRepository{ctx: ctx, pool: pool, log: logger}
+	return c, nil
 }
 
 // Create создает новый бренд
 func (r *BrandRepository) Create(ctx context.Context, brand *dto.Brand) (int64, error) {
 	query := `
-		INSERT INTO brands (name, link, description, logo_url, cover_image_url, founded_year, origin_country, popularity, is_premium, is_upcoming, created_at, updated_at, is_deleted)
+		INSERT INTO public.brands (name, link, description, logo_url, cover_image_url, founded_year, origin_country, popularity, is_premium, is_upcoming, created_at, updated_at, is_deleted)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
 		RETURNING id`
 	now := time.Now()
@@ -29,7 +34,11 @@ func (r *BrandRepository) Create(ctx context.Context, brand *dto.Brand) (int64, 
 		brand.FoundedYear, brand.OriginCountry, brand.Popularity, brand.IsPremium,
 		brand.IsUpcoming, now, now, false,
 	).Scan(&brand.ID)
-	return brand.ID, err
+	if err != nil {
+		return 0, fmt.Errorf("unable to insert brand: %w", err)
+	}
+
+	return brand.ID, nil
 }
 
 // GetByID получает бренд по ID
@@ -125,6 +134,15 @@ func (r *BrandRepository) GetAll(ctx context.Context, filter map[string]interfac
 		}
 	}
 
+	// Обработка сортировки
+	if sortBy != "" {
+		if strings.HasPrefix(sortBy, "-") {
+			queryBuilder.WriteString(fmt.Sprintf(" ORDER BY %s DESC", strings.TrimPrefix(sortBy, "-")))
+		} else {
+			queryBuilder.WriteString(fmt.Sprintf(" ORDER BY %s ASC", sortBy))
+		}
+	}
+
 	// Логируем сгенерированный запрос и аргументы
 	fmt.Printf("Generated query: %s\n", queryBuilder.String())
 	fmt.Printf("Query args: %v\n", args)
@@ -140,7 +158,6 @@ func (r *BrandRepository) GetAll(ctx context.Context, filter map[string]interfac
 	var brands []dto.Brand
 	for rows.Next() {
 		var brand dto.Brand
-		// Исключаем is_deleted из метода rows.Scan
 		if err := rows.Scan(
 			&brand.ID,
 			&brand.Name,

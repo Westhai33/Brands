@@ -6,16 +6,21 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/rs/zerolog"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type ModelRepository struct {
+	ctx  context.Context
 	pool *pgxpool.Pool
+	log  zerolog.Logger
 }
 
-func NewModelRepository(pool *pgxpool.Pool) *ModelRepository {
-	return &ModelRepository{pool: pool}
+func NewModelRepository(ctx context.Context, pool *pgxpool.Pool, logger zerolog.Logger) (*ModelRepository, error) {
+	c := &ModelRepository{ctx: ctx, pool: pool, log: logger}
+	return c, nil
 }
 
 // Проверяет, существует ли бренд с заданным ID

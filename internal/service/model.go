@@ -75,11 +75,11 @@ func (s *ModelService) Restore(ctx context.Context, id int64) error {
 }
 
 // GetAll получает все модели с фильтрацией и сортировкой
-func (s *ModelService) GetAll(ctx context.Context, filter, sort, order string) ([]dto.Model, error) {
-	// Вызов репозитория для получения всех моделей
-	models, err := s.repo.GetAll(ctx, filter, sort, order)
+func (s *ModelService) GetAll(ctx context.Context, filter map[string]interface{}, sortBy string) ([]dto.Model, error) {
+	// Вызов репозитория для получения всех моделей с учетом фильтров и сортировки
+	models, err := s.repo.GetAll(ctx, filter, sortBy)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get all models: %v", err)
 	}
 	return models, nil
 }

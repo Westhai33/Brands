@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "Микро-сервис для работы с брендами",
+        "description": "Микро-сервис для работы с брендами и моделями",
         "title": "Brands API",
         "termsOfService": "http://swagger.io/terms/",
         "contact": {
@@ -346,6 +346,347 @@
                     }
                 }
             }
+        },
+        "/models/all": {
+            "get": {
+                "description": "Возвращает все модели с возможностью фильтрации и сортировки",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "models"
+                ],
+                "summary": "Получение всех моделей",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Фильтрация по полю",
+                        "name": "filter",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Сортировка по полю",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Порядок сортировки (asc, desc)",
+                        "name": "order",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список моделей",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.Model"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to fetch models",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/models/create": {
+            "post": {
+                "description": "Эндпоинт для создания новой модели",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "models"
+                ],
+                "summary": "Создание новой модели",
+                "parameters": [
+                    {
+                        "description": "Данные новой модели",
+                        "name": "model",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.Model"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Model created successfully",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to create model",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/models/delete/{id}": {
+            "delete": {
+                "description": "Выполняет мягкое удаление модели по её ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "models"
+                ],
+                "summary": "Мягкое удаление модели",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID модели",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Model soft-deleted successfully",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID format",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to delete model",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/models/restore/{id}": {
+            "post": {
+                "description": "Восстановление модели, которая была удалена ранее",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "models"
+                ],
+                "summary": "Восстановление мягко удалённой модели",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID модели",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Model restored successfully",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID format",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to restore model",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/models/search": {
+            "get": {
+                "description": "Поиск моделей с фильтрацией и сортировкой",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "models"
+                ],
+                "summary": "Поиск моделей по фильтру",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Фильтрация по полю",
+                        "name": "filter",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Сортировка по полю",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Порядок сортировки (asc, desc)",
+                        "name": "order",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список моделей",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.Model"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to search models",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/models/update/{id}": {
+            "put": {
+                "description": "Обновление данных модели по её ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "models"
+                ],
+                "summary": "Обновление модели по ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID модели",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Обновлённые данные модели",
+                        "name": "model",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.Model"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Model updated successfully",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Model not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to update model",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/models/{id}": {
+            "get": {
+                "description": "Получение информации о модели по её уникальному ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "models"
+                ],
+                "summary": "Получение модели по ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID модели",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Модель найдена",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Model"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID format",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Model not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -403,6 +744,47 @@
                 "popularity": {
                     "description": "Индекс популярности",
                     "type": "integer"
+                },
+                "updated_at": {
+                    "description": "Время обновления",
+                    "type": "string"
+                }
+            }
+        },
+        "dto.Model": {
+            "type": "object",
+            "properties": {
+                "brand_id": {
+                    "description": "Ссылка на бренд",
+                    "type": "integer"
+                },
+                "created_at": {
+                    "description": "Время создания",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "BIGSERIAL",
+                    "type": "integer"
+                },
+                "is_deleted": {
+                    "description": "Флаг удаления",
+                    "type": "boolean"
+                },
+                "is_limited": {
+                    "description": "Флаг ограниченного выпуска",
+                    "type": "boolean"
+                },
+                "is_upcoming": {
+                    "description": "Флаг \"Скоро\"",
+                    "type": "boolean"
+                },
+                "name": {
+                    "description": "Название модели",
+                    "type": "string"
+                },
+                "release_date": {
+                    "description": "Дата релиза",
+                    "type": "string"
                 },
                 "updated_at": {
                     "description": "Время обновления",

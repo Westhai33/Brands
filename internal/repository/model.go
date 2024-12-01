@@ -4,6 +4,7 @@ import (
 	"Brands/internal/dto"
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/rs/zerolog"
@@ -108,60 +109,95 @@ func (r *ModelRepository) Restore(ctx context.Context, id int64) error {
 }
 
 // GetAll получает все модели с фильтрацией и сортировкой
-func (r *ModelRepository) GetAll(ctx context.Context, filter string, sort string, order string) ([]dto.Model, error) {
-	baseQuery := `
-		SELECT id, brand_id, name, release_date, is_upcoming, is_limited, is_deleted, created_at, updated_at
-		FROM models
-		WHERE is_deleted = false`
+func (r *ModelRepository) GetAll(ctx context.Context, filter map[string]interface{}, sortBy string) ([]dto.Model, error) {
+	var queryBuilder strings.Builder
+	var args []interface{}
+	argCounter := 1
 
-	if filter != "" {
-		baseQuery += " AND name ILIKE '%' || $1 || '%'"
+	// Начинаем строить запрос
+	queryBuilder.WriteString("SELECT id, brand_id, name, release_date, is_upcoming, is_limited, is_deleted, created_at, updated_at FROM models WHERE is_deleted = false")
+
+	// Логируем фильтры
+	fmt.Printf("Filter params: %v\n", filter)
+
+	// Добавляем фильтры в запрос
+	if name, ok := filter["name"]; ok && name != "" {
+		queryBuilder.WriteString(fmt.Sprintf(" AND name ILIKE $%d", argCounter))
+		args = append(args, "%"+name.(string)+"%")
+		argCounter++
 	}
 
-	orderClause := " ORDER BY name ASC"
+	if brandID, ok := filter["brand_id"]; ok && brandID != 0 {
+		queryBuilder.WriteString(fmt.Sprintf(" AND brand_id = $%d", argCounter))
+		args = append(args, brandID)
+		argCounter++
+	}
 
-	if sort != "" {
-		switch sort {
-		case "release_date":
-			if order == "desc" {
-				orderClause = " ORDER BY release_date DESC"
-			} else {
-				orderClause = " ORDER BY release_date ASC"
-			}
-		case "name":
-			if order == "desc" {
-				orderClause = " ORDER BY name DESC"
-			} else {
-				orderClause = " ORDER BY name ASC"
-			}
+	if isUpcoming, ok := filter["is_upcoming"]; ok {
+		if isUpcomingBool, ok := isUpcoming.(bool); ok {
+			queryBuilder.WriteString(fmt.Sprintf(" AND is_upcoming = $%d", argCounter))
+			args = append(args, isUpcomingBool)
+			argCounter++
 		}
 	}
 
-	finalQuery := baseQuery + orderClause
-
-	var rows pgx.Rows
-	var err error
-	if filter != "" {
-		rows, err = r.pool.Query(ctx, finalQuery, filter)
-	} else {
-		rows, err = r.pool.Query(ctx, finalQuery)
+	if isLimited, ok := filter["is_limited"]; ok {
+		if isLimitedBool, ok := isLimited.(bool); ok {
+			queryBuilder.WriteString(fmt.Sprintf(" AND is_limited = $%d", argCounter))
+			args = append(args, isLimitedBool)
+			argCounter++
+		}
 	}
+
+	// Обработка сортировки
+	if sortBy != "" {
+		if strings.HasPrefix(sortBy, "-") {
+			queryBuilder.WriteString(fmt.Sprintf(" ORDER BY %s DESC", strings.TrimPrefix(sortBy, "-")))
+		} else {
+			queryBuilder.WriteString(fmt.Sprintf(" ORDER BY %s ASC", sortBy))
+		}
+	} else {
+		queryBuilder.WriteString(" ORDER BY name ASC") // Сортировка по умолчанию
+	}
+
+	// Логируем сгенерированный запрос и аргументы
+	fmt.Printf("Generated query: %s\n", queryBuilder.String())
+	fmt.Printf("Query args: %v\n", args)
+
+	// Выполняем запрос
+	rows, err := r.pool.Query(ctx, queryBuilder.String(), args...)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error executing query: %v", err)
 	}
 	defer rows.Close()
 
+	// Преобразуем строки в модели
 	var models []dto.Model
 	for rows.Next() {
 		var model dto.Model
-		err := rows.Scan(
-			&model.ID, &model.BrandID, &model.Name, &model.ReleaseDate, &model.IsUpcoming,
-			&model.IsLimited, &model.IsDeleted, &model.CreatedAt, &model.UpdatedAt,
-		)
-		if err != nil {
-			return nil, err
+		if err := rows.Scan(
+			&model.ID,
+			&model.BrandID,
+			&model.Name,
+			&model.ReleaseDate,
+			&model.IsUpcoming,
+			&model.IsLimited,
+			&model.IsDeleted,
+			&model.CreatedAt,
+			&model.UpdatedAt); err != nil {
+			return nil, fmt.Errorf("error scanning row: %v", err)
 		}
 		models = append(models, model)
 	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating over rows: %v", err)
+	}
+
+	// Если модели не найдены, возвращаем пустой массив
+	if len(models) == 0 {
+		fmt.Println("No models found with the given filters")
+	}
+
 	return models, nil
 }

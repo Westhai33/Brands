@@ -27,7 +27,7 @@ import (
 
 // @title Brands API
 // @version 1.0
-// @description Микро-сервис для работы с брендами
+// @description Микро-сервис для работы с брендами и моделями
 // @termsOfService http://swagger.io/terms/
 // @contact.name API Support
 // @contact.url http://www.swagger.io/support
@@ -52,9 +52,8 @@ func main() {
 		),
 	)
 	prometheus.MustRegister(goCollector)
-	//TODO: тут трассировку еще надо
 
-	// Подключаемся к базе данных
+	// Подключение к базе данных
 	pgInstance, err := pg.NewPG(ctx, "postgres://brands:pgpwdbrands@postgres:5432/brands?sslmode=disable", zerohook.Logger)
 	if err != nil {
 		zerohook.Logger.Fatal().Msg("Ошибка подключения к базе данных")
@@ -62,29 +61,34 @@ func main() {
 	}
 	defer pgInstance.Close()
 
-	// Создание репозитория и сервиса
+	// Создание репозиториев
 	br, err := repository.NewBrandRepository(ctx, pgInstance.Pool(), zerohook.Logger)
 	if err != nil {
 		zerohook.Logger.Fatal().Err(err)
 		return
 	}
-	bs := service.NewBrandService(br)
-
-	// TODO: add mh
-	//mr, err := repository.NewModelRepository(ctx, pgInstance.Pool(), zerohook.Logger)
-	//if err != nil {
-	//	zerohook.Logger.Fatal().Err(err)
-	//	return
-	//}
-	//ms := service.NewBrandService(br)
-
-	bh := handler.NewBrandHandler(bs)
-	apiService, err := api.NewService(zerohook.Logger, bh)
+	mr, err := repository.NewModelRepository(ctx, pgInstance.Pool(), zerohook.Logger)
 	if err != nil {
 		zerohook.Logger.Fatal().Err(err)
 		return
 	}
 
+	// Создание сервисов
+	bs := service.NewBrandService(br)
+	ms := service.NewModelService(mr)
+
+	// Создание хендлеров
+	bh := handler.NewBrandHandler(bs)
+	mh := handler.NewModelHandler(ms)
+
+	// Создание API-сервиса
+	apiService, err := api.NewService(zerohook.Logger, bh, mh)
+	if err != nil {
+		zerohook.Logger.Fatal().Err(err)
+		return
+	}
+
+	// Пример создания бренда
 	brand := &dto.Brand{
 		Name:          "SuperBrand",
 		Link:          "https://superbrand.com",
@@ -101,13 +105,26 @@ func main() {
 		UpdatedAt:     time.Now(),
 	}
 	zerohook.Logger.Info().Interface("obj", brand).Send()
-	ass, err := bs.Create(ctx, brand)
-	zerohook.Logger.Info().Err(err).Interface("obj", ass).Send()
+	_, err = bs.Create(ctx, brand)
 	if err != nil {
-		zerohook.Logger.Info().Err(err)
-
 		zerohook.Logger.Fatal().Err(err)
 	}
+
+	// Пример создания модели
+	model := &dto.Model{
+		BrandID:     brand.ID,
+		Name:        "Model X",
+		ReleaseDate: time.Now(),
+		IsUpcoming:  false,
+		IsLimited:   true,
+	}
+	zerohook.Logger.Info().Interface("obj", model).Send()
+	_, err = ms.Create(ctx, model)
+	if err != nil {
+		zerohook.Logger.Fatal().Err(err)
+	}
+
+	// Запуск API-сервиса
 	err = apiService.Start(ctx)
 	if err != nil {
 		zerohook.Logger.Fatal().Err(err)
@@ -121,12 +138,10 @@ func main() {
 
 func MustNewConfig(path string, lgr zerolog.Logger) *config.Config {
 	cfg, err := yamlreader.NewConfig[config.Config](path)
-
 	if err != nil {
 		lgr.Fatal().Str("path", path).Err(err).Msg("ошибка чтения конфигурации приложения")
 		return nil
 	}
-
 	return cfg
 }
 

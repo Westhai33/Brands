@@ -295,50 +295,6 @@ func (api *BrandHandler) GetAllBrands(ctx *fasthttp.RequestCtx) {
 	ctx.Response.SetBody(data)
 }
 
-// SearchBrands godoc
-// @Summary Поиск брендов по фильтру
-// @Description Поиск брендов с фильтрацией и сортировкой
-// @Tags brands
-// @Accept json
-// @Produce json
-// @Param filter query string false "Фильтрация по полю"
-// @Param sort query string false "Сортировка по полю"
-// @Success 200 {array} dto.Brand "Список брендов"
-// @Failure 500 {string} string "Failed to search brands"
-// @Router /brands/search [get]
-func (api *BrandHandler) SearchBrands(ctx *fasthttp.RequestCtx) {
-	filterStr := string(ctx.QueryArgs().Peek("filter"))
-	sort := string(ctx.QueryArgs().Peek("sort"))
-
-	// Преобразуем строку фильтрации в map
-	filter, err := parseFilter(filterStr)
-	if err != nil {
-		ctx.Response.SetStatusCode(http.StatusBadRequest)
-		ctx.Response.SetBodyString(fmt.Sprintf("Invalid filter format: %v", err))
-		return
-	}
-
-	// Вызов метода GetAll с фильтром и сортировкой
-	brands, err := api.BrandService.GetAll(ctx, filter, sort)
-	if err != nil {
-		ctx.Response.SetStatusCode(http.StatusInternalServerError)
-		ctx.Response.SetBodyString(fmt.Sprintf("Failed to search brands: %v", err))
-		return
-	}
-
-	// Преобразуем результаты в JSON
-	data, err := json.Marshal(brands)
-	if err != nil {
-		ctx.Response.SetStatusCode(http.StatusInternalServerError)
-		ctx.Response.SetBodyString(fmt.Sprintf("Failed to marshal search results: %v", err))
-		return
-	}
-
-	// Отправляем данные брендов в ответ
-	ctx.Response.SetStatusCode(http.StatusOK)
-	ctx.Response.SetBody(data)
-}
-
 func parseFilter(filterStr string) (map[string]interface{}, error) {
 	filter := make(map[string]interface{})
 	if filterStr != "" {

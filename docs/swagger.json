@@ -198,52 +198,6 @@
                 }
             }
         },
-        "/brands/search": {
-            "get": {
-                "description": "Поиск брендов с фильтрацией и сортировкой",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "brands"
-                ],
-                "summary": "Поиск брендов по фильтру",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Фильтрация по полю",
-                        "name": "filter",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Сортировка по полю",
-                        "name": "sort",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Список брендов",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.Brand"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Failed to search brands",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
         "/brands/update/{id}": {
             "put": {
                 "description": "Обновление данных бренда по его ID",
@@ -526,58 +480,6 @@
                     },
                     "500": {
                         "description": "Failed to restore model",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/models/search": {
-            "get": {
-                "description": "Поиск моделей с фильтрацией и сортировкой",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "models"
-                ],
-                "summary": "Поиск моделей по фильтру",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Фильтрация по полю",
-                        "name": "filter",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Сортировка по полю",
-                        "name": "sort",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Порядок сортировки (asc, desc)",
-                        "name": "order",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Список моделей",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.Model"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Failed to search models",
                         "schema": {
                             "type": "string"
                         }

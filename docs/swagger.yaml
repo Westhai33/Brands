@@ -236,36 +236,6 @@ paths:
       summary: Восстановление мягко удалённого бренда
       tags:
       - brands
-  /brands/search:
-    get:
-      consumes:
-      - application/json
-      description: Поиск брендов с фильтрацией и сортировкой
-      parameters:
-      - description: Фильтрация по полю
-        in: query
-        name: filter
-        type: string
-      - description: Сортировка по полю
-        in: query
-        name: sort
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Список брендов
-          schema:
-            items:
-              $ref: '#/definitions/dto.Brand'
-            type: array
-        "500":
-          description: Failed to search brands
-          schema:
-            type: string
-      summary: Поиск брендов по фильтру
-      tags:
-      - brands
   /brands/update/{id}:
     put:
       consumes:
@@ -454,40 +424,6 @@ paths:
           schema:
             type: string
       summary: Восстановление мягко удалённой модели
-      tags:
-      - models
-  /models/search:
-    get:
-      consumes:
-      - application/json
-      description: Поиск моделей с фильтрацией и сортировкой
-      parameters:
-      - description: Фильтрация по полю
-        in: query
-        name: filter
-        type: string
-      - description: Сортировка по полю
-        in: query
-        name: sort
-        type: string
-      - description: Порядок сортировки (asc, desc)
-        in: query
-        name: order
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Список моделей
-          schema:
-            items:
-              $ref: '#/definitions/dto.Model'
-            type: array
-        "500":
-          description: Failed to search models
-          schema:
-            type: string
-      summary: Поиск моделей по фильтру
       tags:
       - models
   /models/update/{id}:

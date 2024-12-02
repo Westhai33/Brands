@@ -34,7 +34,6 @@ func (api *BrandHandler) SetupRoutes(r *router.Router) {
 	group.DELETE("/delete/{id}", api.DeleteBrand)
 	group.POST("/restore/{id}", api.RestoreBrand)
 	group.GET("/all", api.GetAllBrands)
-	group.GET("/search", api.SearchBrands)
 }
 
 // CreateBrand godoc

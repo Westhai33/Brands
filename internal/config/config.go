@@ -7,10 +7,4 @@ type Config struct {
 	Postgres struct {
 		Conn string `yaml:"conn"`
 	} `yaml:"postgres"`
-	GRPCServer struct {
-		Address string `yaml:"address"` // Адрес для gRPC сервера
-	} `yaml:"grpcServer"`
-	HTTPServer struct {
-		Address string `yaml:"address"` // Адрес для HTTP сервера (Gateway)
-	} `yaml:"httpServer"`
 }

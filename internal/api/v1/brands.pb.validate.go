@@ -190,10 +190,6 @@ func (m *GetBrandResponse) validate(all bool) error {
 
 	// no validation rules for IsUpcoming
 
-	// no validation rules for CreatedAt
-
-	// no validation rules for UpdatedAt
-
 	if len(errors) > 0 {
 		return GetBrandResponseMultiError(errors)
 	}
@@ -557,10 +553,6 @@ func (m *Brand) validate(all bool) error {
 
 	// no validation rules for IsUpcoming
 
-	// no validation rules for CreatedAt
-
-	// no validation rules for UpdatedAt
-
 	if len(errors) > 0 {
 		return BrandMultiError(errors)
 	}
@@ -660,16 +652,7 @@ func (m *GetModelRequest) validate(all bool) error {
 
 	var errors []error
 
-	if m.GetModelId() <= 0 {
-		err := GetModelRequestValidationError{
-			field:  "ModelId",
-			reason: "value must be greater than 0",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for ModelId
 
 	if len(errors) > 0 {
 		return GetModelRequestMultiError(errors)
@@ -782,10 +765,6 @@ func (m *GetModelResponse) validate(all bool) error {
 	// no validation rules for IsUpcoming
 
 	// no validation rules for IsLimited
-
-	// no validation rules for CreatedAt
-
-	// no validation rules for UpdatedAt
 
 	if len(errors) > 0 {
 		return GetModelResponseMultiError(errors)
@@ -1139,10 +1118,6 @@ func (m *Model) validate(all bool) error {
 	// no validation rules for IsUpcoming
 
 	// no validation rules for IsLimited
-
-	// no validation rules for CreatedAt
-
-	// no validation rules for UpdatedAt
 
 	if len(errors) > 0 {
 		return ModelMultiError(errors)

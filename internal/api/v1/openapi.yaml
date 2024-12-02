@@ -140,10 +140,6 @@ components:
                     type: boolean
                 isUpcoming:
                     type: boolean
-                createdAt:
-                    type: string
-                updatedAt:
-                    type: string
         GetAllBrandsResponse:
             type: object
             properties:
@@ -185,10 +181,6 @@ components:
                     type: boolean
                 isUpcoming:
                     type: boolean
-                createdAt:
-                    type: string
-                updatedAt:
-                    type: string
         GetModelResponse:
             type: object
             properties:
@@ -204,10 +196,6 @@ components:
                     type: boolean
                 isLimited:
                     type: boolean
-                createdAt:
-                    type: string
-                updatedAt:
-                    type: string
         GoogleProtobufAny:
             type: object
             properties:
@@ -231,10 +219,6 @@ components:
                     type: boolean
                 isLimited:
                     type: boolean
-                createdAt:
-                    type: string
-                updatedAt:
-                    type: string
         Status:
             type: object
             properties:

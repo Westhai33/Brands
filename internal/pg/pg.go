@@ -20,28 +20,60 @@ var (
 )
 
 // NewPG создает и инициализирует подключение к базе данных PostgreSQL через пул соединений.
-// Теперь принимает только два параметра: контекст и строку подключения
-func NewPG(ctx context.Context, conn string, log zerolog.Logger) *postgres {
+func NewPG(ctx context.Context, conn string, log zerolog.Logger) (*postgres, error) {
+	var err error
 	pgOnce.Do(func() {
-		cfg, err := pgxpool.ParseConfig(conn)
-		if err != nil {
-			log.Fatal().Err(errors.Wrap(err, "unable to create connection pool")).Send()
+		// Парсим конфигурацию подключения
+		cfg, parseErr := pgxpool.ParseConfig(conn)
+		if parseErr != nil {
+			err = errors.Wrap(parseErr, "unable to parse connection config")
+			log.Error().Err(err).Send()
 			return
 		}
+
+		// Добавляем трейсер для логирования запросов
 		cfg.ConnConfig.Tracer = &myQueryTracer{
 			log: log,
 		}
 
-		// Создание пула соединений с базой данных
-		db, err := pgxpool.NewWithConfig(ctx, cfg)
-		if err != nil {
-			log.Fatal().Err(errors.Wrap(err, "unable to create connection pool")).Send()
+		// Создаем пул соединений с базой данных
+		db, poolErr := pgxpool.NewWithConfig(ctx, cfg)
+		if poolErr != nil {
+			err = errors.Wrap(poolErr, "unable to create connection pool")
+			log.Error().Err(err).Send()
 			return
 		}
+
+		// Проверка соединения с базой данных
+		err = checkDBConnection(ctx, db, log)
+		if err != nil {
+			err = errors.Wrap(err, "database connection check failed")
+			log.Error().Err(err).Send()
+			return
+		}
+
+		// Инициализация глобальной переменной
 		pgInstance = &postgres{db}
 	})
 
-	return pgInstance
+	if err != nil {
+		// Если ошибка произошла в процессе инициализации, возвращаем её
+		return nil, err
+	}
+
+	// Если инициализация прошла успешно, возвращаем пул соединений
+	return pgInstance, nil
+}
+
+// Проверка соединения с базой данных
+func checkDBConnection(ctx context.Context, db *pgxpool.Pool, log zerolog.Logger) error {
+	// Пробный запрос для проверки подключения
+	_, err := db.Acquire(ctx)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to acquire a connection from the pool")
+		return err
+	}
+	return nil
 }
 
 // Close закрывает пул соединений с базой данных

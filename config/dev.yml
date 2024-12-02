@@ -1,0 +1,15 @@
+log:
+  app: BrandsService
+  level: debug
+  facility: ItemCloud_Brands
+  ci_commit_ref_name: zero
+  origin: dev
+
+postgres:
+  conn: "postgres://brands:pgpwdbrands@postgres:5432/brands?sslmode=disable"
+
+grpcServer:
+  address: ":50051"  # Адрес для gRPC сервера
+
+httpServer:
+  address: ":8082"  # Адрес для HTTP сервера (Gateway)

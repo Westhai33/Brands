@@ -149,10 +149,8 @@ func (r *ModelRepository) GetAll(ctx context.Context, filter map[string]interfac
 	var args []interface{}
 	argCounter := 1
 
-	// Начинаем запрос с условия is_deleted = false
 	queryBuilder.WriteString("SELECT id, brand_id, name, release_date, is_upcoming, is_limited, is_deleted, created_at, updated_at FROM models WHERE is_deleted = false")
 
-	// Добавляем фильтры
 	if name, ok := filter["name"]; ok && name != "" {
 		queryBuilder.WriteString(fmt.Sprintf(" AND name ILIKE $%d", argCounter))
 		args = append(args, "%"+name.(string)+"%")
@@ -181,7 +179,6 @@ func (r *ModelRepository) GetAll(ctx context.Context, filter map[string]interfac
 		}
 	}
 
-	// Добавляем сортировку
 	if sortBy != "" {
 		if strings.HasPrefix(sortBy, "-") {
 			queryBuilder.WriteString(fmt.Sprintf(" ORDER BY %s DESC", strings.TrimPrefix(sortBy, "-")))
@@ -189,10 +186,9 @@ func (r *ModelRepository) GetAll(ctx context.Context, filter map[string]interfac
 			queryBuilder.WriteString(fmt.Sprintf(" ORDER BY %s ASC", sortBy))
 		}
 	} else {
-		queryBuilder.WriteString(" ORDER BY name ASC") // Сортировка по умолчанию
+		queryBuilder.WriteString(" ORDER BY name ASC")
 	}
 
-	// Выполняем запрос
 	rows, err := r.pool.Query(ctx, queryBuilder.String(), args...)
 	if err != nil {
 		r.log.Error().Err(err).Msg("Failed to execute GetAll query")
@@ -200,7 +196,6 @@ func (r *ModelRepository) GetAll(ctx context.Context, filter map[string]interfac
 	}
 	defer rows.Close()
 
-	// Преобразуем результаты в массив моделей
 	var models []dto.Model
 	for rows.Next() {
 		var model dto.Model

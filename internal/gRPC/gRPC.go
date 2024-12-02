@@ -18,13 +18,17 @@ type gRPCServiceServer struct {
 	v1.UnimplementedGRPCServiceServer // Встраиваем UnimplementedGRPCServiceServer
 	brandService                      *service.BrandService
 	log                               zerolog.Logger // Используем логгер из zerohook
+	grpcServer                        *grpc.Server   // Экспортируемый grpc.Server
 }
 
 // Создание нового gRPC сервиса
 func NewgRPCServiceServer(brandService *service.BrandService) *gRPCServiceServer {
+	// Инициализация grpc.Server
+	grpcServer := grpc.NewServer()
 	return &gRPCServiceServer{
 		brandService: brandService,
 		log:          zerohook.Logger, // Используем глобальный логгер
+		grpcServer:   grpcServer,      // Сохраняем grpc.Server
 	}
 }
 
@@ -48,29 +52,29 @@ func (s *gRPCServiceServer) GetBrand(ctx context.Context, req *v1.GetBrandReques
 		IsPremium:     brand.IsPremium,
 		IsUpcoming:    brand.IsUpcoming,
 		CreatedAt:     brand.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:     brand.UpdatedAt.Format(time.RFC3339),
 	}, nil
 }
 
 // Запуск gRPC сервера
-func RunGRPCServer(brandService *service.BrandService, port string) error {
-	lis, err := net.Listen("tcp", port)
+func (s *gRPCServiceServer) StartServer(grpcAddr string) error {
+	lis, err := net.Listen("tcp", grpcAddr)
 	if err != nil {
-		zerohook.Logger.Fatal().Err(err).Msg("Failed to listen on port")
+		zerohook.Logger.Fatal().Err(err).Msg("Ошибка при запуске gRPC сервера")
 		return err
 	}
 
-	grpcServer := grpc.NewServer()
+	// Регистрируем сервис и reflection
+	v1.RegisterGRPCServiceServer(s.grpcServer, s)
+	reflection.Register(s.grpcServer)
 
-	// Регистрируем наш сервис
-	v1.RegisterGRPCServiceServer(grpcServer, NewgRPCServiceServer(brandService))
-
-	// Регистрируем рефлексию (опционально, для удобства)
-	reflection.Register(grpcServer)
-
-	// Логирование запуска сервера
-	zerohook.Logger.Info().Msgf("gRPC server is running on %s", port)
+	// Логируем запуск gRPC сервера
+	zerohook.Logger.Info().Msg("gRPC сервер слушает на " + grpcAddr)
 
 	// Запуск сервера
-	return grpcServer.Serve(lis)
+	if err := s.grpcServer.Serve(lis); err != nil {
+		zerohook.Logger.Fatal().Err(err).Msg("Ошибка при запуске gRPC сервера")
+		return err
+	}
+
+	return nil
 }

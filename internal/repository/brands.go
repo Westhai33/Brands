@@ -133,10 +133,8 @@ func (r *BrandRepository) GetAll(ctx context.Context, filter map[string]interfac
 	var args []interface{}
 	argCounter := 1
 
-	// Начинаем строить запрос с условием is_deleted = false
 	queryBuilder.WriteString("SELECT id, name, link, description, logo_url, cover_image_url, founded_year, origin_country, popularity, is_premium, is_upcoming, created_at, updated_at FROM brands WHERE is_deleted = false")
 
-	// Добавляем фильтры в запрос
 	if name, ok := filter["name"]; ok && name != "" {
 		queryBuilder.WriteString(fmt.Sprintf(" AND name ILIKE $%d", argCounter))
 		args = append(args, "%"+name.(string)+"%")
@@ -163,7 +161,6 @@ func (r *BrandRepository) GetAll(ctx context.Context, filter map[string]interfac
 		}
 	}
 
-	// Добавляем сортировку
 	if sortBy != "" {
 		if strings.HasPrefix(sortBy, "-") {
 			queryBuilder.WriteString(fmt.Sprintf(" ORDER BY %s DESC", strings.TrimPrefix(sortBy, "-")))
@@ -172,7 +169,6 @@ func (r *BrandRepository) GetAll(ctx context.Context, filter map[string]interfac
 		}
 	}
 
-	// Выполняем запрос
 	rows, err := r.pool.Query(ctx, queryBuilder.String(), args...)
 	if err != nil {
 		r.log.Error().Err(err).Msg("Failed to execute GetAll query")
@@ -180,7 +176,6 @@ func (r *BrandRepository) GetAll(ctx context.Context, filter map[string]interfac
 	}
 	defer rows.Close()
 
-	// Считываем результаты
 	var brands []dto.Brand
 	for rows.Next() {
 		var brand dto.Brand
@@ -195,7 +190,6 @@ func (r *BrandRepository) GetAll(ctx context.Context, filter map[string]interfac
 		brands = append(brands, brand)
 	}
 
-	// Проверяем на ошибки чтения строк
 	if rows.Err() != nil {
 		r.log.Error().Err(rows.Err()).Msg("Error iterating over rows in GetAll")
 		return nil, fmt.Errorf("error iterating over rows: %w", rows.Err())

@@ -43,7 +43,7 @@ func (r *BrandRepository) Update(ctx context.Context, brand *dto.Brand) error {
 		"is_upcoming":     brand.IsUpcoming,
 	}
 
-	_, err := r.pool.Exec(ctx, query, args)
+	cmdTag, err := r.pool.Exec(ctx, query, args)
 
 	if err != nil {
 		span.LogFields(log.Error(err))
@@ -56,6 +56,13 @@ func (r *BrandRepository) Update(ctx context.Context, brand *dto.Brand) error {
 			return ErrBrandNotFound
 		}
 		return fmt.Errorf("unable to update brand: %w", err)
+	}
+	if cmdTag.RowsAffected() == 0 {
+		span.LogFields(log.Error(ErrBrandNotFound))
+		r.log.Warn().
+			Interface("brand", brand).
+			Msg("No brand found to update")
+		return ErrBrandNotFound
 	}
 	return nil
 }

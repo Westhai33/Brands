@@ -2,10 +2,12 @@ package model
 
 import (
 	"Brands/internal/api/handler"
+	modelrepo "Brands/internal/repository/model"
 	"context"
 	"fmt"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/log"
+	"github.com/pkg/errors"
 	"github.com/valyala/fasthttp"
 	"net/http"
 )
@@ -46,6 +48,15 @@ func (api *ModelHandler) DeleteModel(ctx *fasthttp.RequestCtx) {
 	err = api.ModelService.SoftDelete(spanCtx, id)
 	if err != nil {
 		span.SetTag("error", true)
+		if errors.Is(err, modelrepo.ErrModelNotFound) {
+			span.LogFields(
+				log.String("event", "model_not_found"),
+				log.String("model.id", id.String()),
+			)
+			ctx.Response.SetStatusCode(http.StatusNotFound)
+			ctx.Response.SetBodyString(fmt.Sprintf("Model not found with ID: %s", id))
+			return
+		}
 		span.LogFields(
 			log.String("event", "delete_model_error"),
 			log.Error(err),
@@ -97,7 +108,15 @@ func (api *ModelHandler) RestoreModel(ctx *fasthttp.RequestCtx) {
 	err = api.ModelService.Restore(spanCtx, id)
 	if err != nil {
 		span.SetTag("error", true)
-		span.SetTag("error", true)
+		if errors.Is(err, modelrepo.ErrModelNotFound) {
+			span.LogFields(
+				log.String("event", "model_not_found"),
+				log.String("model.id", id.String()),
+			)
+			ctx.Response.SetStatusCode(http.StatusNotFound)
+			ctx.Response.SetBodyString(fmt.Sprintf("Model not found with ID: %s", id))
+			return
+		}
 		span.LogFields(
 			log.String("event", "restore_model_error"),
 			log.Error(err),

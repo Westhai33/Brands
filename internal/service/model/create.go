@@ -30,29 +30,11 @@ func (s *Service) Create(ctx context.Context, model *dto.Model) (int64, error) {
 		return 0, err
 	}
 
-	task := make(chan struct {
-		id  int64
-		err error
-	}, 1)
+	id, err := s.repo.Create(ctx, model)
 
-	s.workerPool.Submit(func(workerID int) {
-		workerSpan, _ := opentracing.StartSpanFromContext(ctx, "Worker.ModelCreate")
-		defer workerSpan.Finish()
-		id, err := s.repo.Create(ctx, model)
-		task <- struct {
-			id  int64
-			err error
-		}{
-			id:  id,
-			err: err,
-		}
-		defer close(task)
-	})
-
-	result := <-task
-	if result.err != nil {
+	if err != nil {
 		span.SetTag("error", true)
-		return 0, result.err
+		return 0, err
 	}
-	return result.id, nil
+	return id, nil
 }

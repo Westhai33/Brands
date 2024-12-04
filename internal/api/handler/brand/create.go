@@ -26,9 +26,14 @@ import (
 // @Failure 500 {string} string "Failed to create brand"
 // @Router /brands/create [post]
 func (api *Handler) CreateBrand(ctx *fasthttp.RequestCtx) {
-	spanCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	var spanCtx context.Context
+	spanCtx, ok := ctx.UserValue("traceContext").(context.Context)
+	if !ok {
+		spanCtx = ctx
+	}
+	spanCtx, cancel := context.WithTimeout(spanCtx, 5*time.Second)
 	defer cancel()
-	span, timeoutCtx := opentracing.StartSpanFromContext(spanCtx, "Handler.CreateBrand")
+	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "Handler.CreateBrand")
 	defer span.Finish()
 
 	decoder := json.NewDecoder(bytes.NewReader(ctx.PostBody()))
@@ -46,14 +51,14 @@ func (api *Handler) CreateBrand(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	brandID, err := api.BrandService.Create(timeoutCtx, &brand)
+	brandID, err := api.BrandService.Create(spanCtx, &brand)
 	if err != nil {
 		span.SetTag("error", true)
 		span.LogFields(
 			log.String("event", "create_brand_error"),
 			log.String("error", err.Error()),
 		)
-		if errors.Is(timeoutCtx.Err(), context.DeadlineExceeded) {
+		if errors.Is(spanCtx.Err(), context.DeadlineExceeded) {
 			ctx.Response.SetStatusCode(http.StatusRequestTimeout)
 			ctx.Response.SetBodyString("Request timeout exceeded")
 		} else {

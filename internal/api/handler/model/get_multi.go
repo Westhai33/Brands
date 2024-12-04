@@ -1,12 +1,15 @@
 package model
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/opentracing/opentracing-go"
 	"github.com/valyala/fasthttp"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // GetAllModels godoc
@@ -22,6 +25,16 @@ import (
 // @Failure 500 {string} string "Failed to fetch models"
 // @Router /models/all [get]
 func (api *Handler) GetAllModels(ctx *fasthttp.RequestCtx) {
+	var spanCtx context.Context
+	spanCtx, ok := ctx.UserValue("traceContext").(context.Context)
+	if !ok {
+		spanCtx = ctx
+	}
+	spanCtx, cancel := context.WithTimeout(spanCtx, 5*time.Second)
+	defer cancel()
+	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "Handler.GetAllModels")
+	defer span.Finish()
+
 	filterStr := string(ctx.QueryArgs().Peek("filter"))
 
 	filter, err := parseFilter(filterStr)
@@ -81,7 +94,7 @@ func (api *Handler) GetAllModels(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	models, err := api.ModelService.GetAll(ctx, filter, sort)
+	models, err := api.ModelService.GetAll(spanCtx, filter, sort)
 	if err != nil {
 		ctx.Response.SetStatusCode(http.StatusInternalServerError)
 		ctx.Response.SetBodyString(fmt.Sprintf("Failed to fetch models: %v", err))

@@ -31,17 +31,7 @@ func (s *Service) Update(ctx context.Context, brand *dto.Brand) error {
 		return err
 	}
 
-	task := make(chan error, 1)
-
-	s.workerPool.Submit(func(workerID int) {
-		workerSpan, _ := opentracing.StartSpanFromContext(ctx, "Worker.UpdateBrand")
-		defer workerSpan.Finish()
-		err := s.repo.Update(ctx, brand)
-		task <- err
-		defer close(task)
-	})
-
-	err := <-task
+	err := s.repo.Update(ctx, brand)
 	if err != nil {
 		span.SetTag("error", true)
 		return err

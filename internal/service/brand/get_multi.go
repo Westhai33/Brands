@@ -17,29 +17,9 @@ func (s *Service) GetAll(ctx context.Context, filter map[string]interface{}, sor
 		Str("sort", sort).
 		Msg("Starting GetAll operation")
 
-	task := make(chan struct {
-		brands []dto.Brand
-		err    error
-	}, 1)
-
-	s.workerPool.Submit(func(workerID int) {
-		workerSpan, _ := opentracing.StartSpanFromContext(ctx, "Worker.GetAllBrands")
-		defer workerSpan.Finish()
-
-		brands, err := s.repo.GetAll(ctx, filter, sort)
-		task <- struct {
-			brands []dto.Brand
-			err    error
-		}{
-			brands: brands,
-			err:    err,
-		}
-		defer close(task)
-	})
-
-	result := <-task
-	if result.err != nil {
-		return nil, result.err
+	brands, err := s.repo.GetAll(ctx, filter, sort)
+	if err != nil {
+		return nil, err
 	}
-	return result.brands, nil
+	return brands, nil
 }

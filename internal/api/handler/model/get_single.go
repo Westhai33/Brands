@@ -1,11 +1,14 @@
 package model
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/opentracing/opentracing-go"
 	"github.com/valyala/fasthttp"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 // GetModelByID godoc
@@ -20,6 +23,16 @@ import (
 // @Failure 404 {string} string "Model not found"
 // @Router /models/{id} [get]
 func (api *Handler) GetModelByID(ctx *fasthttp.RequestCtx) {
+	var spanCtx context.Context
+	spanCtx, ok := ctx.UserValue("traceContext").(context.Context)
+	if !ok {
+		spanCtx = ctx
+	}
+	spanCtx, cancel := context.WithTimeout(spanCtx, 5*time.Second)
+	defer cancel()
+	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "Handler.GetModelByID")
+	defer span.Finish()
+
 	idStr := ctx.UserValue("id").(string)
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
@@ -28,7 +41,7 @@ func (api *Handler) GetModelByID(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	model, err := api.ModelService.GetByID(ctx, id)
+	model, err := api.ModelService.GetByID(spanCtx, id)
 	if err != nil {
 		ctx.Response.SetStatusCode(http.StatusNotFound)
 		ctx.Response.SetBodyString(fmt.Sprintf("Model not found: %v", err))

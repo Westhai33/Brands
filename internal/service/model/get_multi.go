@@ -23,25 +23,10 @@ func (s *Service) GetAll(
 		Str("sort", sort).
 		Msg("Starting GetAll operation")
 
-	task := make(chan struct {
-		models []dto.Model
-		err    error
-	}, 1)
+	models, err := s.repo.GetAll(ctx, filter, sort)
 
-	s.workerPool.Submit(func(workerID int) {
-		workerSpan, _ := opentracing.StartSpanFromContext(ctx, "Worker.GetAllModels")
-		defer workerSpan.Finish()
-		models, err := s.repo.GetAll(ctx, filter, sort)
-		task <- struct {
-			models []dto.Model
-			err    error
-		}{models: models, err: err}
-
-		defer close(task)
-	})
-	result := <-task
-	if result.err != nil {
-		return nil, result.err
+	if err != nil {
+		return nil, err
 	}
-	return result.models, nil
+	return models, nil
 }

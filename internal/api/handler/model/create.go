@@ -3,10 +3,13 @@ package model
 import (
 	"Brands/internal/dto"
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/opentracing/opentracing-go"
 	"github.com/valyala/fasthttp"
 	"net/http"
+	"time"
 )
 
 // CreateModel godoc
@@ -21,6 +24,16 @@ import (
 // @Failure 500 {string} string "Failed to create model"
 // @Router /models/create [post]
 func (api *Handler) CreateModel(ctx *fasthttp.RequestCtx) {
+	var spanCtx context.Context
+	spanCtx, ok := ctx.UserValue("traceContext").(context.Context)
+	if !ok {
+		spanCtx = ctx
+	}
+	spanCtx, cancel := context.WithTimeout(spanCtx, 5*time.Second)
+	defer cancel()
+	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "Handler.CreateModel")
+	defer span.Finish()
+
 	decoder := json.NewDecoder(bytes.NewReader(ctx.PostBody()))
 	var model dto.Model
 	err := decoder.Decode(&model)
@@ -30,7 +43,7 @@ func (api *Handler) CreateModel(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	modelID, err := api.ModelService.Create(ctx, &model)
+	modelID, err := api.ModelService.Create(spanCtx, &model)
 	if err != nil {
 		ctx.Response.SetStatusCode(http.StatusInternalServerError)
 		ctx.Response.SetBodyString(fmt.Sprintf("Failed to create model: %v", err))

@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // GetAllBrands godoc
@@ -29,7 +30,9 @@ func (api *Handler) GetAllBrands(ctx *fasthttp.RequestCtx) {
 	if !ok {
 		spanCtx = ctx
 	}
-	span, timeoutCtx := opentracing.StartSpanFromContext(spanCtx, "Handler.GetAllBrands")
+	spanCtx, cancel := context.WithTimeout(spanCtx, 5*time.Second)
+	defer cancel()
+	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "Handler.GetAllBrands")
 	defer span.Finish()
 
 	// Извлечение фильтров из query параметров
@@ -98,7 +101,7 @@ func (api *Handler) GetAllBrands(ctx *fasthttp.RequestCtx) {
 	}
 
 	// Вызов метода GetAll из сервиса с фильтрами и сортировкой
-	brands, err := api.BrandService.GetAll(timeoutCtx, filter, sort)
+	brands, err := api.BrandService.GetAll(spanCtx, filter, sort)
 	if err != nil {
 		span.SetTag("error", true)
 		span.LogFields(

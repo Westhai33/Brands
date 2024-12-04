@@ -1,10 +1,13 @@
 package model
 
 import (
+	"context"
 	"fmt"
+	"github.com/opentracing/opentracing-go"
 	"github.com/valyala/fasthttp"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 // DeleteModel godoc
@@ -19,6 +22,16 @@ import (
 // @Failure 500 {string} string "Failed to delete model"
 // @Router /models/delete/{id} [delete]
 func (api *Handler) DeleteModel(ctx *fasthttp.RequestCtx) {
+	var spanCtx context.Context
+	spanCtx, ok := ctx.UserValue("traceContext").(context.Context)
+	if !ok {
+		spanCtx = ctx
+	}
+	spanCtx, cancel := context.WithTimeout(spanCtx, 5*time.Second)
+	defer cancel()
+	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "Handler.DeleteModel")
+	defer span.Finish()
+
 	idStr := ctx.UserValue("id").(string)
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
@@ -27,7 +40,7 @@ func (api *Handler) DeleteModel(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	err = api.ModelService.SoftDelete(ctx, id)
+	err = api.ModelService.SoftDelete(spanCtx, id)
 	if err != nil {
 		ctx.Response.SetStatusCode(http.StatusInternalServerError)
 		ctx.Response.SetBodyString(fmt.Sprintf("Failed to delete model: %v", err))
@@ -50,6 +63,16 @@ func (api *Handler) DeleteModel(ctx *fasthttp.RequestCtx) {
 // @Failure 500 {string} string "Failed to restore model"
 // @Router /models/restore/{id} [post]
 func (api *Handler) RestoreModel(ctx *fasthttp.RequestCtx) {
+	var spanCtx context.Context
+	spanCtx, ok := ctx.UserValue("traceContext").(context.Context)
+	if !ok {
+		spanCtx = ctx
+	}
+	spanCtx, cancel := context.WithTimeout(spanCtx, 5*time.Second)
+	defer cancel()
+	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "Handler.RestoreModel")
+	defer span.Finish()
+
 	idStr := ctx.UserValue("id").(string)
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
@@ -58,7 +81,7 @@ func (api *Handler) RestoreModel(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	err = api.ModelService.Restore(ctx, id)
+	err = api.ModelService.Restore(spanCtx, id)
 	if err != nil {
 		ctx.Response.SetStatusCode(http.StatusInternalServerError)
 		ctx.Response.SetBodyString(fmt.Sprintf("Failed to restore model: %v", err))

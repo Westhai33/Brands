@@ -1,29 +1,30 @@
 package main
 
 import (
+	_ "Brands/docs"
 	"Brands/internal/api"
-	"Brands/internal/api/handler"
+	brandhandler "Brands/internal/api/handler/brand"
+	modelhandler "Brands/internal/api/handler/model"
 	"Brands/internal/config"
 	"Brands/internal/dto"
+	"Brands/internal/metrics"
 	"Brands/internal/pg"
-	"Brands/internal/repository"
-	"Brands/internal/service"
+	"Brands/internal/repository/brand"
+	"Brands/internal/repository/model"
+	brandservice "Brands/internal/service/brand"
+	modelservice "Brands/internal/service/model"
 	"Brands/pkg/pool"
+	"Brands/pkg/tracer"
 	"Brands/pkg/yamlreader"
-	"os/signal"
-	"syscall"
-	"time"
-
 	"Brands/pkg/zerohook"
 	"context"
 	"flag"
-	"os"
-	"regexp"
-
-	_ "Brands/docs"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/collectors"
+	"fmt"
 	"github.com/rs/zerolog"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 // @title Brands API
@@ -43,19 +44,18 @@ func main() {
 	cfg := MustNewConfig(parseFlags(), zerohook.Logger)
 	zerohook.InitLogger(cfg.Log)
 
-	_ = prometheus.Unregister(collectors.NewGoCollector())
-	goCollector := collectors.NewGoCollector(
-		collectors.WithGoCollectorRuntimeMetrics(
-			collectors.GoRuntimeMetricsRule{Matcher: regexp.MustCompile("/cpu/classes/total:cpu-seconds")},
-			collectors.GoRuntimeMetricsRule{Matcher: regexp.MustCompile("/cpu/classes/user:cpu-seconds")},
-			collectors.GoRuntimeMetricsRule{Matcher: regexp.MustCompile("/memory/classes/heap/objects:bytes")},
-			collectors.GoRuntimeMetricsRule{Matcher: regexp.MustCompile("/memory/classes/total:bytes")},
-		),
+	err := tracer.InitTracer(
+		cfg.Jaeger.ServiceName,
+		cfg.Jaeger.AgentHost,
+		cfg.Jaeger.AgentPort,
 	)
-	prometheus.MustRegister(goCollector)
+	if err != nil {
+		zerohook.Logger.Fatal().Msgf("Ошибка инициализации трейсера: %v", err)
+		return
+	}
 
 	// Подключение к базе данных
-	pgInstance, err := pg.NewPG(ctx, "postgres://brands:pgpwdbrands@postgres:5432/brands?sslmode=disable", zerohook.Logger)
+	pgInstance, err := pg.NewPG(ctx, cfg.Postgres.Conn, zerohook.Logger)
 	if err != nil {
 		zerohook.Logger.Fatal().Msg("Ошибка подключения к базе данных")
 		return
@@ -63,28 +63,28 @@ func main() {
 	defer pgInstance.Close()
 
 	// Создание WorkerPool
-	wp := pool.NewWorkerPool(ctx) // Инициализация нового WorkerPool
+	wp := pool.NewWorkerPool(ctx)
 	defer wp.Stop()
 
 	// Создание репозиториев
-	br, err := repository.NewBrandRepository(ctx, pgInstance.Pool(), zerohook.Logger)
+	br, err := brand.New(ctx, pgInstance.Pool(), zerohook.Logger)
 	if err != nil {
 		zerohook.Logger.Fatal().Err(err)
 		return
 	}
-	mr, err := repository.NewModelRepository(ctx, pgInstance.Pool(), zerohook.Logger)
+	mr, err := model.New(ctx, pgInstance.Pool(), zerohook.Logger)
 	if err != nil {
 		zerohook.Logger.Fatal().Err(err)
 		return
 	}
 
 	// Создание сервисов с передачей WorkerPool
-	bs := service.NewBrandService(br, wp)
-	ms := service.NewModelService(mr, wp)
+	bs := brandservice.New(br, wp, zerohook.Logger)
+	ms := modelservice.New(mr, wp, zerohook.Logger)
 
 	// Создание хендлеров
-	bh := handler.NewBrandHandler(bs)
-	mh := handler.NewModelHandler(ms)
+	bh := brandhandler.New(bs)
+	mh := modelhandler.New(ms)
 
 	// Создание API-сервиса
 	apiService, err := api.NewService(zerohook.Logger, bh, mh)
@@ -92,6 +92,14 @@ func main() {
 		zerohook.Logger.Fatal().Err(err)
 		return
 	}
+	// Запуск API-сервиса
+	go func() {
+		if err := apiService.Start(ctx); err != nil {
+			zerohook.Logger.Fatal().Err(err)
+		}
+	}()
+
+	go metrics.StartPrometheusServer(fmt.Sprintf(":%d", cfg.Prometheus.Port))
 
 	// Пример создания бренда с использованием WorkerPool
 	wp.Submit(func(workerID int) {
@@ -132,13 +140,6 @@ func main() {
 			zerohook.Logger.Error().Err(err).Msg("Failed to create model asynchronously")
 		}
 	})
-
-	// Запуск API-сервиса
-	go func() {
-		if err := apiService.Start(ctx); err != nil {
-			zerohook.Logger.Fatal().Err(err)
-		}
-	}()
 
 	// Завершение программы
 	quit := make(chan os.Signal, 1)

@@ -28,7 +28,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "brands"
+                    "brand"
                 ],
                 "summary": "Получение всех брендов",
                 "parameters": [
@@ -56,7 +56,7 @@
                         }
                     },
                     "500": {
-                        "description": "Failed to fetch brands",
+                        "description": "Failed to fetch brand",
                         "schema": {
                             "type": "string"
                         }
@@ -74,7 +74,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "brands"
+                    "brand"
                 ],
                 "summary": "Создание нового бренда",
                 "parameters": [
@@ -120,7 +120,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "brands"
+                    "brand"
                 ],
                 "summary": "Мягкое удаление бренда",
                 "parameters": [
@@ -164,7 +164,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "brands"
+                    "brand"
                 ],
                 "summary": "Восстановление мягко удалённого бренда",
                 "parameters": [
@@ -208,7 +208,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "brands"
+                    "brand"
                 ],
                 "summary": "Обновление бренда по ID",
                 "parameters": [
@@ -267,7 +267,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "brands"
+                    "brand"
                 ],
                 "summary": "Получение бренда по ID",
                 "parameters": [
@@ -612,7 +612,6 @@
                     "type": "integer"
                 },
                 "id": {
-                    "description": "BIGSERIAL",
                     "type": "integer"
                 },
                 "is_deleted": {
@@ -628,7 +627,7 @@
                     "type": "boolean"
                 },
                 "link": {
-                    "description": "Может быть пустым",
+                    "description": "Бренд на английском",
                     "type": "string"
                 },
                 "logo_url": {
@@ -636,7 +635,7 @@
                     "type": "string"
                 },
                 "name": {
-                    "description": "NOT NULL",
+                    "description": "Название бренда",
                     "type": "string"
                 },
                 "origin_country": {
@@ -657,7 +656,6 @@
             "type": "object",
             "properties": {
                 "brand_id": {
-                    "description": "Ссылка на бренд",
                     "type": "integer"
                 },
                 "created_at": {
@@ -665,7 +663,6 @@
                     "type": "string"
                 },
                 "id": {
-                    "description": "BIGSERIAL",
                     "type": "integer"
                 },
                 "is_deleted": {
@@ -679,6 +676,10 @@
                 "is_upcoming": {
                     "description": "Флаг \"Скоро\"",
                     "type": "boolean"
+                },
+                "link": {
+                    "description": "Модель на английском",
+                    "type": "string"
                 },
                 "name": {
                     "description": "Название модели",

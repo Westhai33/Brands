@@ -34,7 +34,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "brands"
+                    "brand"
                 ],
                 "summary": "Получение всех брендов",
                 "parameters": [
@@ -62,7 +62,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Failed to fetch brands",
+                        "description": "Failed to fetch brand",
                         "schema": {
                             "type": "string"
                         }
@@ -80,7 +80,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "brands"
+                    "brand"
                 ],
                 "summary": "Создание нового бренда",
                 "parameters": [
@@ -126,7 +126,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "brands"
+                    "brand"
                 ],
                 "summary": "Мягкое удаление бренда",
                 "parameters": [
@@ -170,7 +170,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "brands"
+                    "brand"
                 ],
                 "summary": "Восстановление мягко удалённого бренда",
                 "parameters": [
@@ -214,7 +214,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "brands"
+                    "brand"
                 ],
                 "summary": "Обновление бренда по ID",
                 "parameters": [
@@ -273,7 +273,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "brands"
+                    "brand"
                 ],
                 "summary": "Получение бренда по ID",
                 "parameters": [
@@ -618,7 +618,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "id": {
-                    "description": "BIGSERIAL",
                     "type": "integer"
                 },
                 "is_deleted": {
@@ -634,7 +633,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "link": {
-                    "description": "Может быть пустым",
+                    "description": "Бренд на английском",
                     "type": "string"
                 },
                 "logo_url": {
@@ -642,7 +641,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
-                    "description": "NOT NULL",
+                    "description": "Название бренда",
                     "type": "string"
                 },
                 "origin_country": {
@@ -663,7 +662,6 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "brand_id": {
-                    "description": "Ссылка на бренд",
                     "type": "integer"
                 },
                 "created_at": {
@@ -671,7 +669,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
-                    "description": "BIGSERIAL",
                     "type": "integer"
                 },
                 "is_deleted": {
@@ -685,6 +682,10 @@ const docTemplate = `{
                 "is_upcoming": {
                     "description": "Флаг \"Скоро\"",
                     "type": "boolean"
+                },
+                "link": {
+                    "description": "Модель на английском",
+                    "type": "string"
                 },
                 "name": {
                     "description": "Название модели",

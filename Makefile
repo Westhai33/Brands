@@ -1,29 +1,58 @@
-# start app
-PROTO_DIR = ./proto
-GEN_DIR = ./
-SWAGGER_DIR = ./swagger
-
-# Go-пакеты в проекте
-GOPACKAGES := $(shell go list ./...)
-.PHONY : run
+# ╔════════════════════════════════════════════════════════════════════════╗
+#                          ⭐ Start App ⭐
+# ╚════════════════════════════════════════════════════════════════════════╝
+.PHONY: run
 run:
 	go mod download && go run main.go --config="config/dev.yml"
 
-.PHONY : docker-up
+.PHONY: run-local
+run-local:
+	go mod download && go run main.go --config="config/local.yml"
+
+.PHONY: docker-up
 docker-up:
 	docker-compose -f docker-compose.yml up --build
 
-# Таргет для применения миграций базы данных
-migrate:
-	@echo "Applying database migrations..."
-	goose -dir ./migrations postgres "host=localhost port=5432 user=brands password=pgpwdbrands dbname=brands sslmode=disable" up
-	@echo "Database migrations applied successfully."
+# ╔════════════════════════════════════════════════════════════════════════╗
+#                 ⚙️ Database Migrations Targets
+# ╚════════════════════════════════════════════════════════════════════════╝
+# Таргеты для применения миграций базы данных
+include .env
+DB_STRING := "postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:5432/$(POSTGRES_DB)?sslmode=disable"
+# Директория миграций
+MIGRATIONS_DIR="./migrations"
+## migration-create: Создает новую миграцию
+.PHONY: migration-create
+migration-create:
+	goose -dir "$(MIGRATIONS_DIR)" create "$(MIGRATION_NAME)" sql
+
+ ## migration-up: Применяет миграции к базе данных
+.PHONY: migration-up
+migration-up:
+	goose -dir "$(MIGRATIONS_DIR)" postgres "$(DB_STRING)" up
+
+ ## migration-down: Откатывает миграции в базе данных
+.PHONY: migration-down
+migration-down:
+	goose -dir "$(MIGRATIONS_DIR)" postgres "$(DB_STRING)" down
+
+# ╔════════════════════════════════════════════════════════════════════════╗
+#                 ⚙️ Proto Files and Code Generation
+# ╚════════════════════════════════════════════════════════════════════════╝
+# Директории для .api файлов и сгенерированных файлов
+PROTO_DIR = $(CURDIR)/api
+GEN_DIR:=$(CURDIR)/internal/pb
+# Путь к локальным бинарным файлам Go
+LOCAL_BIN:=$(CURDIR)/bin
+# Список всех .api файлов в директории PROTO_DIR и ее поддиректориях
+PROTO_FILES=$(shell find $(PROTO_DIR) -name "*.proto")
+
 
 swagger: generate
 	@echo "Generating Swagger specifications..."
-	mkdir -p ./internal/api/v1
+	mkdir -p ./internal/pb
 	protoc -I=$(PROTO_DIR) \
-		--openapi_out=./internal/api/v1/ \
+		--openapi_out=./internal/pb/ \
 		$(PROTO_DIR)/*.proto
 	@echo "Swagger specifications generated and saved to swagger.json."
 

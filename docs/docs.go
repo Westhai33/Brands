@@ -205,6 +205,13 @@ const docTemplate = `{
                 "summary": "Обновление бренда по ID",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "ID бренда (UUIDv7)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "Обновлённые данные бренда",
                         "name": "brand",
                         "in": "body",
@@ -466,6 +473,13 @@ const docTemplate = `{
                 ],
                 "summary": "Обновление модели по ID",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID модели (UUIDv7)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "description": "Обновлённые данные модели",
                         "name": "model",

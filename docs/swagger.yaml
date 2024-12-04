@@ -233,6 +233,11 @@ paths:
       - application/json
       description: Обновление данных бренда по его ID
       parameters:
+      - description: ID бренда (UUIDv7)
+        in: path
+        name: id
+        required: true
+        type: string
       - description: Обновлённые данные бренда
         in: body
         name: brand
@@ -405,6 +410,11 @@ paths:
       - application/json
       description: Обновление данных модели по её ID
       parameters:
+      - description: ID модели (UUIDv7)
+        in: path
+        name: id
+        required: true
+        type: string
       - description: Обновлённые данные модели
         in: body
         name: model

@@ -14,9 +14,8 @@ func (r *BrandRepository) SoftDelete(ctx context.Context, id int64) error {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "BrandRepository.SoftDelete")
 	defer span.Finish()
 
-	query := `UPDATE brands SET is_deleted = true, updated_at = NOW() WHERE id = $1 RETURNING id`
-	var returnedID int64
-	err := r.pool.QueryRow(ctx, query, id).Scan(&returnedID)
+	query := `UPDATE brands SET is_deleted = true, updated_at = NOW() WHERE id = $1`
+	_, err := r.pool.Exec(ctx, query, id)
 
 	if err != nil {
 		span.SetTag("error", true)
@@ -35,9 +34,8 @@ func (r *BrandRepository) Restore(ctx context.Context, id int64) error {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "BrandRepository.Restore")
 	defer span.Finish()
 
-	query := `UPDATE brands SET is_deleted = false, updated_at = NOW() WHERE id = $1 RETURNING id`
-	var returnedID int64
-	err := r.pool.QueryRow(ctx, query, id).Scan(&returnedID)
+	query := `UPDATE brands SET is_deleted = false, updated_at = NOW() WHERE id = $1`
+	_, err := r.pool.Exec(ctx, query, id)
 
 	if err != nil {
 		span.SetTag("error", true)

@@ -16,7 +16,7 @@ func (r *BrandRepository) SoftDelete(ctx context.Context, id uuid.UUID) error {
 	defer span.Finish()
 
 	query := `UPDATE brands SET is_deleted = true, updated_at = NOW() WHERE id = $1`
-	_, err := r.pool.Exec(ctx, query, id)
+	cmdTag, err := r.pool.Exec(ctx, query, id)
 
 	if err != nil {
 		span.LogFields(log.Error(err))
@@ -27,6 +27,13 @@ func (r *BrandRepository) SoftDelete(ctx context.Context, id uuid.UUID) error {
 		r.log.Error().Err(err).Str("brand_id", id.String()).Msg("Failed to soft delete brand")
 		return fmt.Errorf("unable to soft delete brand: %w", err)
 	}
+	if cmdTag.RowsAffected() == 0 {
+		span.LogFields(log.Error(ErrBrandNotFound))
+		r.log.Warn().
+			Interface("brand_id", id.String()).
+			Msg("No brand found to update")
+		return ErrBrandNotFound
+	}
 	return nil
 }
 
@@ -36,7 +43,7 @@ func (r *BrandRepository) Restore(ctx context.Context, id uuid.UUID) error {
 	defer span.Finish()
 
 	query := `UPDATE brands SET is_deleted = false, updated_at = NOW() WHERE id = $1`
-	_, err := r.pool.Exec(ctx, query, id)
+	cmdTag, err := r.pool.Exec(ctx, query, id)
 
 	if err != nil {
 		span.LogFields(log.Error(err))
@@ -46,6 +53,13 @@ func (r *BrandRepository) Restore(ctx context.Context, id uuid.UUID) error {
 		}
 		r.log.Error().Err(err).Str("brand_id", id.String()).Msg("Failed to restore brand")
 		return fmt.Errorf("unable to restore brand: %w", err)
+	}
+	if cmdTag.RowsAffected() == 0 {
+		span.LogFields(log.Error(ErrBrandNotFound))
+		r.log.Warn().
+			Interface("brand_id", id.String()).
+			Msg("No brand found to update")
+		return ErrBrandNotFound
 	}
 	return nil
 }

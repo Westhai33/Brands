@@ -16,7 +16,7 @@ func (r *ModelRepository) SoftDelete(ctx context.Context, id uuid.UUID) error {
 	defer span.Finish()
 
 	query := `UPDATE models SET is_deleted = true, updated_at = NOW() WHERE id = $1`
-	_, err := r.pool.Exec(ctx, query, id)
+	cmdTag, err := r.pool.Exec(ctx, query, id)
 	if err != nil {
 		span.LogFields(log.Error(err))
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -25,6 +25,13 @@ func (r *ModelRepository) SoftDelete(ctx context.Context, id uuid.UUID) error {
 		}
 		r.log.Error().Err(err).Str("model_id", id.String()).Msg("Failed to soft delete model")
 		return fmt.Errorf("failed to soft delete model with id %d: %w", id, err)
+	}
+	if cmdTag.RowsAffected() == 0 {
+		span.LogFields(log.Error(ErrModelNotFound))
+		r.log.Warn().
+			Interface("model_id", id.String()).
+			Msg("No model found to update")
+		return ErrModelNotFound
 	}
 	return nil
 }
@@ -35,7 +42,7 @@ func (r *ModelRepository) Restore(ctx context.Context, id uuid.UUID) error {
 	defer span.Finish()
 
 	query := `UPDATE models SET is_deleted = false, updated_at = NOW() WHERE id = $1`
-	_, err := r.pool.Exec(ctx, query, id)
+	cmdTag, err := r.pool.Exec(ctx, query, id)
 	if err != nil {
 		span.LogFields(log.Error(err))
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -44,6 +51,13 @@ func (r *ModelRepository) Restore(ctx context.Context, id uuid.UUID) error {
 		}
 		r.log.Error().Err(err).Str("model_id", id.String()).Msg("Failed to restore model")
 		return fmt.Errorf("failed to restore model with id %d: %w", id, err)
+	}
+	if cmdTag.RowsAffected() == 0 {
+		span.LogFields(log.Error(ErrModelNotFound))
+		r.log.Warn().
+			Interface("model_id", id.String()).
+			Msg("No model found to update")
+		return ErrModelNotFound
 	}
 	return nil
 }

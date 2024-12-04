@@ -61,6 +61,7 @@ func (r *ModelRepository) Create(ctx context.Context, model *dto.Model) error {
 			log.Object("brand", model),
 		)
 		r.log.Error().Interface("model", model).Err(err).Msg("Failed to create model")
+
 		return fmt.Errorf("failed to create model: %w", err)
 	}
 	return nil

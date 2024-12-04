@@ -4,6 +4,7 @@ import (
 	"Brands/internal/dto"
 	"context"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/log"
@@ -13,7 +14,7 @@ import (
 // GetByID получает бренд по ID
 func (r *BrandRepository) GetByID(
 	ctx context.Context,
-	id int64,
+	id uuid.UUID,
 ) (*dto.Brand, error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "BrandRepository.GetByID")
 	defer span.Finish()
@@ -27,6 +28,7 @@ func (r *BrandRepository) GetByID(
 
 	row := r.pool.QueryRow(ctx, query, id)
 
+	// TODO: change to pgx.CollectRows
 	brand := dto.Brand{}
 	err := row.Scan(
 		&brand.ID,
@@ -47,11 +49,12 @@ func (r *BrandRepository) GetByID(
 	if err != nil {
 		span.SetTag("error", true)
 		span.LogFields(log.Error(err))
-		r.log.Error().Err(err).Int64("brand_id", id).Msg("Failed to fetch brand by ID")
 
 		if errors.Is(err, pgx.ErrNoRows) {
+			r.log.Warn().Str("brand_id", id.String()).Msg("Brand not found")
 			return nil, ErrBrandNotFound
 		}
+		r.log.Error().Err(err).Str("brand_id", id.String()).Msg("Failed to fetch brand by ID")
 		return nil, fmt.Errorf("unable to get brand by id: %w", err)
 	}
 	return &brand, nil

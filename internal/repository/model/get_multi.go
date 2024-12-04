@@ -14,7 +14,7 @@ func (r *ModelRepository) GetAll(ctx context.Context) ([]dto.Model, error) {
 	defer span.Finish()
 
 	query := `
-        SELECT id, brand_id, name, release_date, is_upcoming, is_limited, is_deleted, created_at, updated_at 
+        SELECT * 
         FROM models 
         WHERE is_deleted = false
         ORDER BY name ASC

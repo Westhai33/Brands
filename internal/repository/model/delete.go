@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/log"
+	"github.com/pkg/errors"
 )
 
 // SoftDelete мягко удаляет модель
@@ -18,6 +20,10 @@ func (r *ModelRepository) SoftDelete(ctx context.Context, id uuid.UUID) error {
 	if err != nil {
 		span.SetTag("error", true)
 		span.LogFields(log.Error(err), log.String("model_id", id.String()))
+		if errors.Is(err, pgx.ErrNoRows) {
+			r.log.Warn().Str("model_id", id.String()).Msg("Model not found")
+			return ErrModelNotFound
+		}
 		r.log.Error().Err(err).Str("model_id", id.String()).Msg("Failed to soft delete model")
 		return fmt.Errorf("failed to soft delete model with id %d: %w", id, err)
 	}
@@ -34,6 +40,10 @@ func (r *ModelRepository) Restore(ctx context.Context, id uuid.UUID) error {
 	if err != nil {
 		span.SetTag("error", true)
 		span.LogFields(log.Error(err), log.String("model_id", id.String()))
+		if errors.Is(err, pgx.ErrNoRows) {
+			r.log.Warn().Str("model_id", id.String()).Msg("Model not found")
+			return ErrModelNotFound
+		}
 		r.log.Error().Err(err).Str("model_id", id.String()).Msg("Failed to restore model")
 		return fmt.Errorf("failed to restore model with id %d: %w", id, err)
 	}

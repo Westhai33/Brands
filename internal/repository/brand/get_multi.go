@@ -4,6 +4,7 @@ import (
 	"Brands/internal/dto"
 	"context"
 	"fmt"
+	"github.com/jackc/pgx/v5"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/log"
 )
@@ -15,8 +16,7 @@ func (r *BrandRepository) GetAll(ctx context.Context, sortBy string) ([]dto.Bran
 
 	// Стартуем с базового SQL-запроса
 	query := `
-        SELECT id, name, link, description, logo_url, cover_image_url, founded_year, 
-               origin_country, popularity, is_premium, is_upcoming, created_at, updated_at 
+        SELECT * 
         FROM brands 
         WHERE is_deleted = false
         ORDER BY name ASC
@@ -34,45 +34,18 @@ func (r *BrandRepository) GetAll(ctx context.Context, sortBy string) ([]dto.Bran
 	defer rows.Close()
 
 	var brands []dto.Brand
-
-	for rows.Next() {
-		var brand dto.Brand
-		if err = rows.Scan(
-			&brand.ID,
-			&brand.Name,
-			&brand.Link,
-			&brand.Description,
-			&brand.LogoURL,
-			&brand.CoverImageURL,
-			&brand.FoundedYear,
-			&brand.OriginCountry,
-			&brand.Popularity,
-			&brand.IsPremium,
-			&brand.IsUpcoming,
-			&brand.CreatedAt,
-			&brand.UpdatedAt,
-		); err != nil {
-			span.SetTag("error", true)
-			span.LogFields(log.Error(err))
-			r.log.Error().Err(err).Msg("Failed to scan row in GetAll")
-			return nil, fmt.Errorf("error scanning row: %w", err)
-		}
-		brands = append(brands, brand)
-	}
-
-	// Проверка ошибок после итерации по строкам
-	if rows.Err() != nil {
+	brands, err = pgx.CollectRows(rows, pgx.RowToStructByName[dto.Brand])
+	if err != nil {
 		span.SetTag("error", true)
 		span.LogFields(
-			log.String("event", "rows_iteration_error"),
-			log.String("error", rows.Err().Error()),
+			log.Error(err),
+			log.String("event", "collect_rows_error"),
 		)
 		r.log.Error().
-			Err(rows.Err()).
+			Err(err).
 			Str("operation", "GetAll").
-			Msg("Error iterating over rows in GetAll")
-		return nil, fmt.Errorf("error iterating over rows: %w", rows.Err())
+			Msg("Failed to collect rows into brands")
+		return nil, fmt.Errorf("error collecting rows: %w", err)
 	}
-
 	return brands, nil
 }

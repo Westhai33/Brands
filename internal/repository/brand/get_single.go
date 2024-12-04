@@ -19,8 +19,7 @@ func (r *BrandRepository) GetByID(
 	defer span.Finish()
 
 	query := `
-        SELECT id, name, link, description, logo_url, cover_image_url, founded_year, 
-               origin_country, popularity, is_premium, is_upcoming, is_deleted, created_at, updated_at
+        SELECT *
         FROM brands
         WHERE id = $1 and is_deleted = false
     `

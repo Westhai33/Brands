@@ -9,7 +9,6 @@ type Model struct {
 	ID          uuid.UUID `json:"id"`
 	BrandID     uuid.UUID `json:"brand_id"`
 	Name        string    `json:"name"`         // Название модели
-	Link        string    `json:"link"`         // Модель на английском
 	ReleaseDate time.Time `json:"release_date"` // Дата релиза
 	IsUpcoming  bool      `json:"is_upcoming"`  // Флаг "Скоро"
 	IsLimited   bool      `json:"is_limited"`   // Флаг ограниченного выпуска

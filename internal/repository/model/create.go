@@ -12,11 +12,9 @@ import (
 
 // Create создает новую модель
 func (r *ModelRepository) Create(ctx context.Context, model *dto.Model) error {
-	// Создаем span для трассировки
 	span, ctx := opentracing.StartSpanFromContext(ctx, "ModelRepository.Create")
 	defer span.Finish()
 
-	// Проверяем существует ли бренд с указанным ID
 	exists, err := r.brandExists(ctx, model.BrandID)
 	if err != nil {
 		span.LogFields(
@@ -30,7 +28,7 @@ func (r *ModelRepository) Create(ctx context.Context, model *dto.Model) error {
 		err = fmt.Errorf(
 			"brand with ID %d does not exist: %w",
 			model.BrandID,
-			brand.ErrBrandNotFound, // Убедитесь, что это ошибка правильно определена в пакете brand
+			brand.ErrBrandNotFound,
 		)
 
 		span.LogFields(
@@ -41,13 +39,10 @@ func (r *ModelRepository) Create(ctx context.Context, model *dto.Model) error {
 		return err
 	}
 
-	// SQL-запрос для вставки новой модели
 	query := `
 		INSERT INTO models (id, brand_id, name, release_date, is_upcoming, is_limited, created_at, updated_at, is_deleted)
-		VALUES (:id, :brand_id, :name, :release_date, :is_upcoming, :is_limited, NOW(), NOW(), false)
+		VALUES (@id, @brand_id, @name, @release_date, @is_upcoming, @is_limited, NOW(), NOW(), false)
 	`
-
-	// Используем pgx.NamedArgs для передачи параметров запроса
 	args := pgx.NamedArgs{
 		"id":           model.ID,
 		"brand_id":     model.BrandID,
@@ -56,20 +51,15 @@ func (r *ModelRepository) Create(ctx context.Context, model *dto.Model) error {
 		"is_upcoming":  model.IsUpcoming,
 		"is_limited":   model.IsLimited,
 	}
-
-	// Выполняем запрос
 	_, err = r.pool.Exec(ctx, query, args)
 	if err != nil {
-		// Логируем ошибку при создании модели
 		span.LogFields(
 			log.Error(err),
-			log.Object("model", model),
+			log.Object("brand", model),
 		)
 		r.log.Error().Interface("model", model).Err(err).Msg("Failed to create model")
 
-		// Возвращаем ошибку
 		return fmt.Errorf("failed to create model: %w", err)
 	}
-
 	return nil
 }

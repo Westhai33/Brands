@@ -119,6 +119,5 @@ func LoggingMiddleware(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 			Int("status", ctx.Response.StatusCode()).
 			Dur("latency", end.Sub(begin)).
 			Msg("Completed request")
-
 	}
 }

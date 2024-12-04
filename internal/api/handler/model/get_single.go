@@ -2,11 +2,13 @@ package model
 
 import (
 	"Brands/internal/api/handler"
+	modelrepo "Brands/internal/repository/model"
 	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/log"
+	"github.com/pkg/errors"
 	"github.com/valyala/fasthttp"
 	"net/http"
 )
@@ -47,6 +49,20 @@ func (api *ModelHandler) GetModelByID(ctx *fasthttp.RequestCtx) {
 
 	model, err := api.ModelService.GetByID(spanCtx, id)
 	if err != nil {
+		if errors.Is(err, modelrepo.ErrModelNotFound) {
+			span.LogFields(
+				log.String("event", "model_not_found"),
+				log.String("model.id", id.String()),
+			)
+			ctx.Response.SetStatusCode(http.StatusNotFound)
+			ctx.Response.SetBodyString(fmt.Sprintf("Model not found with ID: %d", id))
+			return
+		}
+		span.LogFields(
+			log.String("event", "get_model_error"),
+			log.Error(err),
+			log.String("model.id", id.String()),
+		)
 		ctx.Response.SetStatusCode(http.StatusNotFound)
 		ctx.Response.SetBodyString(fmt.Sprintf("Model not found: %v", err))
 		return
@@ -54,6 +70,11 @@ func (api *ModelHandler) GetModelByID(ctx *fasthttp.RequestCtx) {
 
 	data, err := json.Marshal(model)
 	if err != nil {
+		span.LogFields(
+			log.String("event", "json_marshal_error"),
+			log.Error(err),
+			log.Object("model", model),
+		)
 		ctx.Response.SetStatusCode(http.StatusInternalServerError)
 		ctx.Response.SetBodyString(fmt.Sprintf("Failed to marshal model data: %v", err))
 		return

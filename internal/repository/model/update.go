@@ -15,28 +15,20 @@ func (r *ModelRepository) Update(ctx context.Context, model *dto.Model) error {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "ModelRepository.Update")
 	defer span.Finish()
 
-	exists, err := r.brandExists(ctx, model.BrandID)
+	brandExists, err := r.brandExists(ctx, model.BrandID)
 	if err != nil {
-
-		span.LogFields(
-			log.Error(err),
-			log.Object("model", model),
-		)
-		r.log.Warn().Interface("model", model).Msgf("Failed to check if brand exists: %s", err.Error())
+		span.LogFields(log.Error(err))
+		r.log.Warn().Interface("model", model).Msgf("Failed to check if brand brandExists: %s", err.Error())
 		return err
 	}
 
-	if !exists {
+	if !brandExists {
 		err = fmt.Errorf(
 			"brand with ID %d does not exist: %w",
 			model.BrandID,
 			brand.ErrBrandNotFound,
 		)
-
-		span.LogFields(
-			log.Error(err),
-			log.Object("model", model),
-		)
+		span.LogFields(log.Error(err))
 		r.log.Warn().Interface("model", model).Msg(err.Error())
 		return err
 	}

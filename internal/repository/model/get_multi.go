@@ -71,8 +71,8 @@ func (r *ModelRepository) ModelsFilter(ctx context.Context, filter map[string]an
 		case "brand_id":
 			queryBuilder.WriteString(fmt.Sprintf(" AND brand_id = $%d", argCounter))
 			args = append(args, value.(string))
-		case "is_premium":
-			queryBuilder.WriteString(fmt.Sprintf(" AND is_premium = $%d", argCounter))
+		case "is_limited":
+			queryBuilder.WriteString(fmt.Sprintf(" AND is_limited = $%d", argCounter))
 			args = append(args, value.(bool))
 		}
 		argCounter++

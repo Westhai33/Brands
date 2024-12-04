@@ -392,7 +392,7 @@ paths:
         type: integer
       - description: Фильтр по признаку премиум-модели
         in: query
-        name: is_premium
+        name: is_limited
         type: boolean
       - description: Поле сортировки (например, 'name', '-popularity')
         in: query

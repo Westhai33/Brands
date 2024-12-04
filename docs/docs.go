@@ -450,7 +450,7 @@ const docTemplate = `{
                     {
                         "type": "boolean",
                         "description": "Фильтр по признаку премиум-модели",
-                        "name": "is_premium",
+                        "name": "is_limited",
                         "in": "query"
                     },
                     {

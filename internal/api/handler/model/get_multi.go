@@ -71,7 +71,7 @@ func (api *ModelHandler) GetAllModels(ctx *fasthttp.RequestCtx) {
 // @Param name query string false "Фильтр по имени модели"
 // @Param brand_id query string false "Фильтр по идентификатору бренда"
 // @Param popularity query integer false "Фильтр по популярности (целое число)"
-// @Param is_premium query boolean false "Фильтр по признаку премиум-модели"
+// @Param is_limited query boolean false "Фильтр по признаку премиум-модели"
 // @Param sort query string false "Поле сортировки (например, 'name', '-popularity')"
 // @Success 200 {array} dto.Model "Список моделей"
 // @Failure 500 {string} string "Failed to fetch models"
@@ -106,15 +106,15 @@ func (api *ModelHandler) ModelsFilter(ctx *fasthttp.RequestCtx) {
 		}
 		filter["brand_id"] = string(brandID)
 	}
-	if isPremium := ctx.QueryArgs().Peek("is_premium"); len(isPremium) > 0 {
+	if isPremium := ctx.QueryArgs().Peek("is_limited"); len(isPremium) > 0 {
 		if isPremiumVal, err := strconv.ParseBool(string(isPremium)); err == nil {
-			filter["is_premium"] = isPremiumVal
+			filter["is_limited"] = isPremiumVal
 		} else {
-			message := "Invalid is_premium value"
+			message := "Invalid is_limited value"
 			span.SetTag("error", true)
 			span.LogFields(log.String("err", message))
 			ctx.Response.SetStatusCode(http.StatusBadRequest)
-			ctx.Response.SetBodyString("Invalid is_premium value")
+			ctx.Response.SetBodyString("Invalid is_limited value")
 			return
 		}
 	}

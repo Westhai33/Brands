@@ -28,7 +28,6 @@ func (r *BrandRepository) Update(ctx context.Context, brand *dto.Brand) error {
             is_upcoming = @is_upcoming, 
             updated_at = NOW()
         WHERE id = @id AND is_deleted = false
-        RETURNING id
     `
 	args := pgx.NamedArgs{
 		"id":              brand.ID,

@@ -1,6 +1,7 @@
 package brand
 
 import (
+	"Brands/internal/api/handler"
 	"Brands/internal/dto"
 	"bytes"
 	"context"
@@ -19,6 +20,7 @@ import (
 // @Tags brand
 // @Accept json
 // @Produce json
+// @Param id path string true "ID бренда (UUIDv7)"
 // @Param brand body dto.Brand true "Обновлённые данные бренда"
 // @Success 200 {string} string "Brand updated successfully"
 // @Failure 400 {string} string "Invalid request body"
@@ -52,6 +54,18 @@ func (api *BrandHandler) UpdateBrand(ctx *fasthttp.RequestCtx) {
 		err = errors.New("Name is required")
 		ctx.Response.SetStatusCode(http.StatusBadRequest)
 		ctx.Response.SetBodyString(err.Error())
+		return
+	}
+	// Извлечение и парсинг UUID из пути запроса
+	brand.ID, err = handler.ExtractUUIDFromPath(ctx, "id")
+	if err != nil {
+		span.SetTag("error", true)
+		span.LogFields(
+			log.String("event", "invalid_id"),
+			log.Error(err),
+		)
+		ctx.SetStatusCode(http.StatusBadRequest)
+		ctx.Response.SetBodyString("Invalid ID format")
 		return
 	}
 

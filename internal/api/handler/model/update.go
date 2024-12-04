@@ -1,6 +1,7 @@
 package model
 
 import (
+	"Brands/internal/api/handler"
 	"Brands/internal/dto"
 	"bytes"
 	"context"
@@ -19,6 +20,7 @@ import (
 // @Tags models
 // @Accept json
 // @Produce json
+// @Param id path string true "ID модели (UUIDv7)"
 // @Param model body dto.Model true "Обновлённые данные модели"
 // @Success 200 {string} string "Model updated successfully"
 // @Failure 400 {string} string "Invalid request body"
@@ -53,7 +55,18 @@ func (api *ModelHandler) UpdateModel(ctx *fasthttp.RequestCtx) {
 		ctx.Response.SetBodyString(err.Error())
 		return
 	}
-
+	// Извлечение и парсинг UUID из пути запроса
+	model.ID, err = handler.ExtractUUIDFromPath(ctx, "id")
+	if err != nil {
+		span.SetTag("error", true)
+		span.LogFields(
+			log.String("event", "invalid_id"),
+			log.Error(err),
+		)
+		ctx.SetStatusCode(http.StatusBadRequest)
+		ctx.Response.SetBodyString("Invalid ID format")
+		return
+	}
 	err = api.ModelService.Update(spanCtx, &model)
 	if err != nil {
 		span.SetTag("error", true)

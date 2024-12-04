@@ -37,50 +37,6 @@ const docTemplate = `{
                     "brand"
                 ],
                 "summary": "Получение всех брендов",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Фильтр по имени бренда",
-                        "name": "name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Фильтр по стране происхождения",
-                        "name": "origin_country",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Фильтр по популярности (целое число)",
-                        "name": "popularity",
-                        "in": "query"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Фильтр по признаку премиум-бренда",
-                        "name": "is_premium",
-                        "in": "query"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Фильтр по признаку предстоящего бренда",
-                        "name": "is_upcoming",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Фильтр по году основания",
-                        "name": "founded_year",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Поле сортировки (например, 'name', '-popularity')",
-                        "name": "sort",
-                        "in": "query"
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "Список брендов",
@@ -92,7 +48,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Failed to fetch brands",
+                        "description": "Failed to fetch brand",
                         "schema": {
                             "type": "string"
                         }
@@ -161,7 +117,7 @@ const docTemplate = `{
                 "summary": "Мягкое удаление бренда",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "ID бренда",
                         "name": "id",
                         "in": "path",
@@ -281,7 +237,7 @@ const docTemplate = `{
                 "summary": "Восстановление мягко удалённого бренда",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "ID бренда",
                         "name": "id",
                         "in": "path",
@@ -325,8 +281,8 @@ const docTemplate = `{
                 "summary": "Обновление бренда по ID",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "ID бренда",
+                        "type": "string",
+                        "description": "ID бренда (UUIDv7)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -384,7 +340,7 @@ const docTemplate = `{
                 "summary": "Получение бренда по ID",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "ID бренда",
                         "name": "id",
                         "in": "path",
@@ -506,8 +462,8 @@ const docTemplate = `{
                 "summary": "Мягкое удаление модели",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "ID модели",
+                        "type": "string",
+                        "description": "ID модели (UUIDv7)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -535,6 +491,70 @@ const docTemplate = `{
                 }
             }
         },
+        "/models/filter": {
+            "get": {
+                "description": "Возвращает все модели с возможностью фильтрации и сортировки",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "models"
+                ],
+                "summary": "Фильтрация моделей",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Фильтр по имени модели",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по идентификатору бренда",
+                        "name": "brand_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Фильтр по популярности (целое число)",
+                        "name": "popularity",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Фильтр по признаку премиум-модели",
+                        "name": "is_limited",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Поле сортировки (например, 'name', '-popularity')",
+                        "name": "sort",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список моделей",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.Model"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to fetch models",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/models/restore/{id}": {
             "post": {
                 "description": "Восстановление модели, которая была удалена ранее",
@@ -550,8 +570,8 @@ const docTemplate = `{
                 "summary": "Восстановление мягко удалённой модели",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "ID модели",
+                        "type": "string",
+                        "description": "ID модели (UUIDv7)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -594,8 +614,8 @@ const docTemplate = `{
                 "summary": "Обновление модели по ID",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "ID модели",
+                        "type": "string",
+                        "description": "ID модели (UUIDv7)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -653,8 +673,8 @@ const docTemplate = `{
                 "summary": "Получение модели по ID",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "ID модели",
+                        "type": "string",
+                        "description": "ID модели (UUIDv7)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -704,7 +724,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "is_deleted": {
                     "description": "Флаг удаления",
@@ -748,14 +768,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "brand_id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "created_at": {
                     "description": "Время создания",
                     "type": "string"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "is_deleted": {
                     "description": "Флаг удаления",
@@ -768,10 +788,6 @@ const docTemplate = `{
                 "is_upcoming": {
                     "description": "Флаг \"Скоро\"",
                     "type": "boolean"
-                },
-                "link": {
-                    "description": "Модель на английском",
-                    "type": "string"
                 },
                 "name": {
                     "description": "Название модели",

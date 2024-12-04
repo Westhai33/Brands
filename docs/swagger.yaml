@@ -15,7 +15,7 @@ definitions:
         description: Год основания
         type: integer
       id:
-        type: integer
+        type: string
       is_deleted:
         description: Флаг удаления
         type: boolean
@@ -47,12 +47,12 @@ definitions:
   dto.Model:
     properties:
       brand_id:
-        type: integer
+        type: string
       created_at:
         description: Время создания
         type: string
       id:
-        type: integer
+        type: string
       is_deleted:
         description: Флаг удаления
         type: boolean
@@ -62,9 +62,6 @@ definitions:
       is_upcoming:
         description: Флаг "Скоро"
         type: boolean
-      link:
-        description: Модель на английском
-        type: string
       name:
         description: Название модели
         type: string
@@ -99,7 +96,7 @@ paths:
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -123,35 +120,6 @@ paths:
       consumes:
       - application/json
       description: Возвращает все бренды с возможностью фильтрации и сортировки
-      parameters:
-      - description: Фильтр по имени бренда
-        in: query
-        name: name
-        type: string
-      - description: Фильтр по стране происхождения
-        in: query
-        name: origin_country
-        type: string
-      - description: Фильтр по популярности (целое число)
-        in: query
-        name: popularity
-        type: integer
-      - description: Фильтр по признаку премиум-бренда
-        in: query
-        name: is_premium
-        type: boolean
-      - description: Фильтр по признаку предстоящего бренда
-        in: query
-        name: is_upcoming
-        type: boolean
-      - description: Фильтр по году основания
-        in: query
-        name: founded_year
-        type: integer
-      - description: Поле сортировки (например, 'name', '-popularity')
-        in: query
-        name: sort
-        type: string
       produces:
       - application/json
       responses:
@@ -162,7 +130,7 @@ paths:
               $ref: '#/definitions/dto.Brand'
             type: array
         "500":
-          description: Failed to fetch brands
+          description: Failed to fetch brand
           schema:
             type: string
       summary: Получение всех брендов
@@ -208,7 +176,7 @@ paths:
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -287,7 +255,7 @@ paths:
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -312,11 +280,11 @@ paths:
       - application/json
       description: Обновление данных бренда по его ID
       parameters:
-      - description: ID бренда
+      - description: ID бренда (UUIDv7)
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       - description: Обновлённые данные бренда
         in: body
         name: brand
@@ -351,11 +319,11 @@ paths:
       - application/json
       description: Получение информации о модели по её уникальному ID
       parameters:
-      - description: ID модели
+      - description: ID модели (UUIDv7)
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -431,11 +399,11 @@ paths:
       - application/json
       description: Выполняет мягкое удаление модели по её ID
       parameters:
-      - description: ID модели
+      - description: ID модели (UUIDv7)
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -454,17 +422,59 @@ paths:
       summary: Мягкое удаление модели
       tags:
       - models
+  /models/filter:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает все модели с возможностью фильтрации и сортировки
+      parameters:
+      - description: Фильтр по имени модели
+        in: query
+        name: name
+        type: string
+      - description: Фильтр по идентификатору бренда
+        in: query
+        name: brand_id
+        type: string
+      - description: Фильтр по популярности (целое число)
+        in: query
+        name: popularity
+        type: integer
+      - description: Фильтр по признаку премиум-модели
+        in: query
+        name: is_limited
+        type: boolean
+      - description: Поле сортировки (например, 'name', '-popularity')
+        in: query
+        name: sort
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список моделей
+          schema:
+            items:
+              $ref: '#/definitions/dto.Model'
+            type: array
+        "500":
+          description: Failed to fetch models
+          schema:
+            type: string
+      summary: Фильтрация моделей
+      tags:
+      - models
   /models/restore/{id}:
     post:
       consumes:
       - application/json
       description: Восстановление модели, которая была удалена ранее
       parameters:
-      - description: ID модели
+      - description: ID модели (UUIDv7)
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -489,11 +499,11 @@ paths:
       - application/json
       description: Обновление данных модели по её ID
       parameters:
-      - description: ID модели
+      - description: ID модели (UUIDv7)
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       - description: Обновлённые данные модели
         in: body
         name: model

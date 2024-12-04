@@ -36,7 +36,7 @@ func (s *BrandService) GetByID(ctx context.Context, id int64) (*dto.Brand, error
 	result := <-task
 
 	if result.err != nil {
-		span.SetTag("error", true)
+
 		return nil, result.err
 	}
 	return result.brand, nil

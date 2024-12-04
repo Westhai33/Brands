@@ -31,20 +31,6 @@
                     "brand"
                 ],
                 "summary": "Получение всех брендов",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Фильтрация по полю",
-                        "name": "filter",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Сортировка по полю",
-                        "name": "sort",
-                        "in": "query"
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "Список брендов",
@@ -314,26 +300,6 @@
                     "models"
                 ],
                 "summary": "Получение всех моделей",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Фильтрация по полю",
-                        "name": "filter",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Сортировка по полю",
-                        "name": "sort",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Порядок сортировки (asc, desc)",
-                        "name": "order",
-                        "in": "query"
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "Список моделей",
@@ -612,7 +578,7 @@
                     "type": "integer"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "is_deleted": {
                     "description": "Флаг удаления",
@@ -656,14 +622,14 @@
             "type": "object",
             "properties": {
                 "brand_id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "created_at": {
                     "description": "Время создания",
                     "type": "string"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "is_deleted": {
                     "description": "Флаг удаления",

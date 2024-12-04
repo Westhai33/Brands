@@ -38,7 +38,7 @@ func (r *ModelRepository) GetByID(
 	)
 
 	if err != nil {
-		span.SetTag("error", true)
+
 		span.LogFields(log.Error(err))
 
 		if errors.Is(err, pgx.ErrNoRows) {

@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE TABLE models (
-                        id BIGSERIAL PRIMARY KEY,
+                        id uuid NOT NULL PRIMARY KEY,
                         brand_id BIGINT NOT NULL,
                         name VARCHAR(255) NOT NULL,
                         release_date DATE,

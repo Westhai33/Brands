@@ -15,7 +15,7 @@ definitions:
         description: Год основания
         type: integer
       id:
-        type: integer
+        type: string
       is_deleted:
         description: Флаг удаления
         type: boolean
@@ -47,12 +47,12 @@ definitions:
   dto.Model:
     properties:
       brand_id:
-        type: integer
+        type: string
       created_at:
         description: Время создания
         type: string
       id:
-        type: integer
+        type: string
       is_deleted:
         description: Флаг удаления
         type: boolean
@@ -123,15 +123,6 @@ paths:
       consumes:
       - application/json
       description: Возвращает все бренды с возможностью фильтрации и сортировки
-      parameters:
-      - description: Фильтрация по полю
-        in: query
-        name: filter
-        type: string
-      - description: Сортировка по полю
-        in: query
-        name: sort
-        type: string
       produces:
       - application/json
       responses:
@@ -309,19 +300,6 @@ paths:
       consumes:
       - application/json
       description: Возвращает все модели с возможностью фильтрации и сортировки
-      parameters:
-      - description: Фильтрация по полю
-        in: query
-        name: filter
-        type: string
-      - description: Сортировка по полю
-        in: query
-        name: sort
-        type: string
-      - description: Порядок сортировки (asc, desc)
-        in: query
-        name: order
-        type: string
       produces:
       - application/json
       responses:

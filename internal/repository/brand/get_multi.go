@@ -10,7 +10,7 @@ import (
 )
 
 // GetAll получает все бренды с сортировкой по имени
-func (r *BrandRepository) GetAll(ctx context.Context, sortBy string) ([]dto.Brand, error) {
+func (r *BrandRepository) GetAll(ctx context.Context) ([]dto.Brand, error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "BrandRepository.GetAll")
 	defer span.Finish()
 
@@ -24,7 +24,7 @@ func (r *BrandRepository) GetAll(ctx context.Context, sortBy string) ([]dto.Bran
 
 	rows, err := r.pool.Query(ctx, query)
 	if err != nil {
-		span.SetTag("error", true)
+
 		span.LogFields(log.Error(err))
 		r.log.Error().
 			Err(err).
@@ -36,7 +36,7 @@ func (r *BrandRepository) GetAll(ctx context.Context, sortBy string) ([]dto.Bran
 	var brands []dto.Brand
 	brands, err = pgx.CollectRows(rows, pgx.RowToStructByName[dto.Brand])
 	if err != nil {
-		span.SetTag("error", true)
+
 		span.LogFields(
 			log.Error(err),
 			log.String("event", "collect_rows_error"),

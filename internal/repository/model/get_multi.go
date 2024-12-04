@@ -22,7 +22,7 @@ func (r *ModelRepository) GetAll(ctx context.Context) ([]dto.Model, error) {
 	// Выполняем запрос
 	rows, err := r.pool.Query(ctx, query)
 	if err != nil {
-		span.SetTag("error", true)
+
 		span.LogFields(
 			log.Error(err),
 			log.String("query", query),
@@ -38,7 +38,7 @@ func (r *ModelRepository) GetAll(ctx context.Context) ([]dto.Model, error) {
 	var models []dto.Model
 	models, err = pgx.CollectRows(rows, pgx.RowToStructByName[dto.Model])
 	if err != nil {
-		span.SetTag("error", true)
+
 		span.LogFields(
 			log.Error(err),
 			log.String("event", "collect_rows_error"),

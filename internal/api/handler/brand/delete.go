@@ -31,15 +31,14 @@ func (api *BrandHandler) DeleteBrand(ctx *fasthttp.RequestCtx) {
 	if !ok {
 		spanCtx = ctx
 	}
-	spanCtx, cancel := context.WithTimeout(spanCtx, 5*time.Second)
-	defer cancel()
+
 	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "BrandHandler.DeleteBrand")
 	defer span.Finish()
 
 	idStr := ctx.UserValue("id").(string)
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		span.SetTag("error", true)
+
 		span.LogFields(
 			log.String("event", "decode_error"),
 			log.String("error", err.Error()),
@@ -51,7 +50,7 @@ func (api *BrandHandler) DeleteBrand(ctx *fasthttp.RequestCtx) {
 
 	err = api.BrandService.SoftDelete(spanCtx, id)
 	if err != nil {
-		span.SetTag("error", true)
+
 		if errors.Is(err, brandrepo.ErrBrandNotFound) {
 			span.LogFields(
 				log.String("event", "brand_not_found"),
@@ -94,7 +93,7 @@ func (api *BrandHandler) RestoreBrand(ctx *fasthttp.RequestCtx) {
 	idStr := ctx.UserValue("id").(string)
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		span.SetTag("error", true)
+
 		span.LogFields(
 			log.String("event", "decode_error"),
 			log.String("error", err.Error()),
@@ -106,7 +105,7 @@ func (api *BrandHandler) RestoreBrand(ctx *fasthttp.RequestCtx) {
 
 	err = api.BrandService.Restore(spanCtx, id)
 	if err != nil {
-		span.SetTag("error", true)
+
 		if errors.Is(err, brandrepo.ErrBrandNotFound) {
 			span.LogFields(
 				log.String("event", "brand_not_found"),

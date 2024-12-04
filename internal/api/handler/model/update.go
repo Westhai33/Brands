@@ -10,7 +10,6 @@ import (
 	"github.com/valyala/fasthttp"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 // UpdateModel godoc
@@ -19,7 +18,7 @@ import (
 // @Tags models
 // @Accept json
 // @Produce json
-// @Param id path int true "ID модели"
+// @Param id path string true "ID модели (UUIDv7)"
 // @Param model body dto.Model true "Обновлённые данные модели"
 // @Success 200 {string} string "Model updated successfully"
 // @Failure 400 {string} string "Invalid request body"
@@ -32,8 +31,7 @@ func (api *ModelHandler) UpdateModel(ctx *fasthttp.RequestCtx) {
 	if !ok {
 		spanCtx = ctx
 	}
-	spanCtx, cancel := context.WithTimeout(spanCtx, 5*time.Second)
-	defer cancel()
+
 	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "ModelHandler.UpdateModel")
 	defer span.Finish()
 

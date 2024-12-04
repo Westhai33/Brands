@@ -18,7 +18,7 @@ func (r *ModelRepository) Create(ctx context.Context, model *dto.Model) error {
 
 	exists, err := r.brandExists(ctx, model.BrandID)
 	if err != nil {
-		span.SetTag("error", true)
+
 		span.LogFields(
 			log.Error(err),
 			log.Object("model", model),
@@ -32,7 +32,7 @@ func (r *ModelRepository) Create(ctx context.Context, model *dto.Model) error {
 			model.BrandID,
 			brand.ErrBrandNotFound,
 		)
-		span.SetTag("error", true)
+
 		span.LogFields(
 			log.Error(err),
 			log.Object("model", model),
@@ -55,7 +55,7 @@ func (r *ModelRepository) Create(ctx context.Context, model *dto.Model) error {
 	}
 	_, err = r.pool.Exec(ctx, query, args)
 	if err != nil {
-		span.SetTag("error", true)
+
 		span.LogFields(
 			log.Error(err),
 			log.Object("brand", model),

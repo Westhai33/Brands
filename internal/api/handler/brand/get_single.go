@@ -1,18 +1,16 @@
 package brand
 
 import (
+	brandrepo "Brands/internal/repository/brand"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
-	"strconv"
-	"time"
-
-	brandrepo "Brands/internal/repository/brand"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/log"
 	"github.com/valyala/fasthttp"
+	"net/http"
+	"strconv"
 )
 
 // GetBrandByID godoc
@@ -32,15 +30,14 @@ func (api *BrandHandler) GetBrandByID(ctx *fasthttp.RequestCtx) {
 	if !ok {
 		spanCtx = ctx
 	}
-	spanCtx, cancel := context.WithTimeout(spanCtx, 5*time.Second)
-	defer cancel()
+
 	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "BrandHandler.GetBrandByID")
 	defer span.Finish()
 
 	idStr := ctx.UserValue("id").(string)
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		span.SetTag("error", true)
+
 		span.LogFields(
 			log.String("event", "decode_error"),
 			log.String("error", err.Error()),
@@ -52,7 +49,7 @@ func (api *BrandHandler) GetBrandByID(ctx *fasthttp.RequestCtx) {
 
 	brand, err := api.BrandService.GetByID(spanCtx, id)
 	if err != nil {
-		span.SetTag("error", true)
+
 		if errors.Is(err, brandrepo.ErrBrandNotFound) {
 			span.LogFields(
 				log.String("event", "brand_not_found"),
@@ -73,7 +70,7 @@ func (api *BrandHandler) GetBrandByID(ctx *fasthttp.RequestCtx) {
 
 	data, err := json.Marshal(brand)
 	if err != nil {
-		span.SetTag("error", true)
+
 		span.LogFields(
 			log.String("event", "json_marshal_error"),
 			log.String("error", err.Error()),

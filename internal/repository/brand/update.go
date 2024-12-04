@@ -47,7 +47,7 @@ func (r *BrandRepository) Update(ctx context.Context, brand *dto.Brand) error {
 	_, err := r.pool.Exec(ctx, query, args)
 
 	if err != nil {
-		span.SetTag("error", true)
+
 		span.LogFields(
 			log.Error(err),
 			log.Object("brand", brand),

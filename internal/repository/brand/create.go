@@ -3,7 +3,6 @@ package brand
 import (
 	"context"
 	"fmt"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
 	"Brands/internal/dto"
@@ -15,7 +14,7 @@ import (
 func (r *BrandRepository) Create(
 	ctx context.Context,
 	brand *dto.Brand,
-) (uuid.UUID, error) {
+) error {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "BrandRepository.Create")
 	defer span.Finish()
 
@@ -39,11 +38,11 @@ func (r *BrandRepository) Create(
 	}
 	_, err := r.pool.Exec(ctx, query, args)
 	if err != nil {
-		span.SetTag("error", true)
+
 		span.LogFields(log.Error(err), log.Object("brand", brand))
 		r.log.Error().Interface("brand", brand).Err(err).Msg("Failed to create brand")
-		return uuid.Nil, fmt.Errorf("unable to create brand: %w", err)
+		return fmt.Errorf("unable to create brand: %w", err)
 	}
 
-	return brand.ID, nil
+	return nil
 }

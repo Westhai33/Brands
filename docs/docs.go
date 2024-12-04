@@ -37,20 +37,6 @@ const docTemplate = `{
                     "brand"
                 ],
                 "summary": "Получение всех брендов",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Фильтрация по полю",
-                        "name": "filter",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Сортировка по полю",
-                        "name": "sort",
-                        "in": "query"
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "Список брендов",
@@ -320,26 +306,6 @@ const docTemplate = `{
                     "models"
                 ],
                 "summary": "Получение всех моделей",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Фильтрация по полю",
-                        "name": "filter",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Сортировка по полю",
-                        "name": "sort",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Порядок сортировки (asc, desc)",
-                        "name": "order",
-                        "in": "query"
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "Список моделей",
@@ -618,7 +584,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "is_deleted": {
                     "description": "Флаг удаления",
@@ -662,14 +628,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "brand_id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "created_at": {
                     "description": "Время создания",
                     "type": "string"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "is_deleted": {
                     "description": "Флаг удаления",

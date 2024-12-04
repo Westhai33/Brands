@@ -1,17 +1,16 @@
 package model
 
 import (
-	"context"
-	"fmt"
-
 	"Brands/internal/dto"
 	"Brands/pkg/zerohook"
+	"context"
+	"fmt"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/log"
 )
 
 // Create создает новую модель
-func (s *ModelService) Create(ctx context.Context, model *dto.Model) (int64, error) {
+func (s *ModelService) Create(ctx context.Context, model *dto.Model) error {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "ModelService.Create")
 	defer span.Finish()
 
@@ -21,20 +20,19 @@ func (s *ModelService) Create(ctx context.Context, model *dto.Model) (int64, err
 			Err(err).
 			Msg("Validation failed in Create")
 
-		span.SetTag("error", true)
 		span.LogFields(
 			log.String("event", "validation error"),
 			log.String("reason", "name is required"),
 		)
 
-		return 0, err
+		return err
 	}
 
-	id, err := s.repo.Create(ctx, model)
+	err := s.repo.Create(ctx, model)
 
 	if err != nil {
-		span.SetTag("error", true)
-		return 0, err
+
+		return err
 	}
-	return id, nil
+	return nil
 }

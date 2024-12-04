@@ -18,7 +18,7 @@ func (r *ModelRepository) SoftDelete(ctx context.Context, id uuid.UUID) error {
 	query := `UPDATE models SET is_deleted = true, updated_at = NOW() WHERE id = $1`
 	_, err := r.pool.Exec(ctx, query, id)
 	if err != nil {
-		span.SetTag("error", true)
+
 		span.LogFields(log.Error(err), log.String("model_id", id.String()))
 		if errors.Is(err, pgx.ErrNoRows) {
 			r.log.Warn().Str("model_id", id.String()).Msg("Model not found")
@@ -38,7 +38,7 @@ func (r *ModelRepository) Restore(ctx context.Context, id uuid.UUID) error {
 	query := `UPDATE models SET is_deleted = false, updated_at = NOW() WHERE id = $1`
 	_, err := r.pool.Exec(ctx, query, id)
 	if err != nil {
-		span.SetTag("error", true)
+
 		span.LogFields(log.Error(err), log.String("model_id", id.String()))
 		if errors.Is(err, pgx.ErrNoRows) {
 			r.log.Warn().Str("model_id", id.String()).Msg("Model not found")

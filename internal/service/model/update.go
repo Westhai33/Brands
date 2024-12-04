@@ -20,7 +20,6 @@ func (s *ModelService) Update(ctx context.Context, model *dto.Model) error {
 			Err(err).
 			Msg("Validation failed in Update")
 
-		span.SetTag("error", true)
 		span.LogFields(
 			log.String("event", "validation error"),
 			log.String("reason", "name is required"),
@@ -31,7 +30,7 @@ func (s *ModelService) Update(ctx context.Context, model *dto.Model) error {
 
 	err := s.repo.Update(ctx, model)
 	if err != nil {
-		span.SetTag("error", true)
+
 		return err
 	}
 	return nil

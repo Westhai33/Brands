@@ -146,6 +146,82 @@ const docTemplate = `{
                 }
             }
         },
+        "/brands/filter": {
+            "get": {
+                "description": "Возвращает все бренды с возможностью фильтрации и сортировки",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "brand"
+                ],
+                "summary": "Фильтрация брендов",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Фильтр по имени бренда",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по стране происхождения",
+                        "name": "origin_country",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Фильтр по популярности (целое число)",
+                        "name": "popularity",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Фильтр по признаку премиум-бренда",
+                        "name": "is_premium",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Фильтр по признаку предстоящего бренда",
+                        "name": "is_upcoming",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Фильтр по году основания",
+                        "name": "founded_year",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Поле сортировки (например, 'name', '-popularity')",
+                        "name": "sort",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список брендов",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.Brand"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to fetch brands",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/brands/restore/{id}": {
             "post": {
                 "description": "Восстановление бренда, который был удалён ранее (мягкое удаление)",

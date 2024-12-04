@@ -195,6 +195,56 @@ paths:
       summary: Мягкое удаление бренда
       tags:
       - brand
+  /brands/filter:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает все бренды с возможностью фильтрации и сортировки
+      parameters:
+      - description: Фильтр по имени бренда
+        in: query
+        name: name
+        type: string
+      - description: Фильтр по стране происхождения
+        in: query
+        name: origin_country
+        type: string
+      - description: Фильтр по популярности (целое число)
+        in: query
+        name: popularity
+        type: integer
+      - description: Фильтр по признаку премиум-бренда
+        in: query
+        name: is_premium
+        type: boolean
+      - description: Фильтр по признаку предстоящего бренда
+        in: query
+        name: is_upcoming
+        type: boolean
+      - description: Фильтр по году основания
+        in: query
+        name: founded_year
+        type: integer
+      - description: Поле сортировки (например, 'name', '-popularity')
+        in: query
+        name: sort
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список брендов
+          schema:
+            items:
+              $ref: '#/definitions/dto.Brand'
+            type: array
+        "500":
+          description: Failed to fetch brands
+          schema:
+            type: string
+      summary: Фильтрация брендов
+      tags:
+      - brand
   /brands/restore/{id}:
     post:
       consumes:

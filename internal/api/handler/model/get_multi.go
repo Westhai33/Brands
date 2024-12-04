@@ -1,7 +1,6 @@
 package model
 
 import (
-	"Brands/pkg/zerohook"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -92,7 +91,6 @@ func (api *ModelHandler) ModelsFilter(ctx *fasthttp.RequestCtx) {
 	}
 	if brandID := ctx.QueryArgs().Peek("brand_id"); len(brandID) > 0 {
 		_, err := uuid.Parse(string(brandID))
-		zerohook.Logger.Info().Msg(string(brandID))
 
 		if err != nil {
 			span.SetTag("error", true)
@@ -114,7 +112,7 @@ func (api *ModelHandler) ModelsFilter(ctx *fasthttp.RequestCtx) {
 			span.SetTag("error", true)
 			span.LogFields(log.String("err", message))
 			ctx.Response.SetStatusCode(http.StatusBadRequest)
-			ctx.Response.SetBodyString("Invalid is_limited value")
+			ctx.Response.SetBodyString(message)
 			return
 		}
 	}

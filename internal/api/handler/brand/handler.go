@@ -20,8 +20,9 @@ func (api *BrandHandler) SetupRoutes(r *router.Router) {
 	group := r.Group("/brands")
 	group.POST("/create", api.CreateBrand)
 	group.GET("/{id}", api.GetBrandByID)
+	group.GET("/filter", api.BrandsFilter)
+	group.GET("/all", api.GetAllBrands)
 	group.PUT("/update/{id}", api.UpdateBrand)
 	group.DELETE("/delete/{id}", api.DeleteBrand)
 	group.POST("/restore/{id}", api.RestoreBrand)
-	group.GET("/all", api.GetAllBrands)
 }

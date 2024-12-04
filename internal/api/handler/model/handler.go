@@ -19,9 +19,9 @@ func (api *ModelHandler) SetupRoutes(r *router.Router) {
 	group := r.Group("/models")
 	group.POST("/create", api.CreateModel)
 	group.GET("/{id}", api.GetModelByID)
+	group.GET("/all", api.GetAllModels)
+	group.GET("/filter", api.ModelsFilter)
 	group.PUT("/update/{id}", api.UpdateModel)
 	group.DELETE("/delete/{id}", api.DeleteModel)
 	group.POST("/restore/{id}", api.RestoreModel)
-	group.GET("/all", api.GetAllModels)
-	group.GET("/filter", api.ModelsFilter)
 }

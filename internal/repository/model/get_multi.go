@@ -46,12 +46,16 @@ func (r *ModelRepository) GetAll(ctx context.Context) ([]dto.Model, error) {
 	return models, nil
 }
 
-func (r *ModelRepository) ModelsFilter(ctx context.Context, filter map[string]any, sortBy string) ([]dto.Model, error) {
+func (r *ModelRepository) ModelsFilter(
+	ctx context.Context,
+	filter map[string]any,
+	sortBy string,
+) ([]dto.Model, error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "ModelRepository.ModelsFilter")
 	defer span.Finish()
 
 	var queryBuilder strings.Builder
-	var args []interface{}
+	var args []any
 	argCounter := 1
 
 	queryBuilder.WriteString(`

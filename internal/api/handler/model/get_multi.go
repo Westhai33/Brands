@@ -7,7 +7,6 @@ import (
 	"github.com/opentracing/opentracing-go"
 	"github.com/valyala/fasthttp"
 	"net/http"
-	"time"
 )
 
 // GetAllModels godoc
@@ -25,20 +24,22 @@ func (api *ModelHandler) GetAllModels(ctx *fasthttp.RequestCtx) {
 	if !ok {
 		spanCtx = ctx
 	}
-	spanCtx, cancel := context.WithTimeout(spanCtx, 5*time.Second)
-	defer cancel()
+
 	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "ModelHandler.GetAllModels")
 	defer span.Finish()
 
 	models, err := api.ModelService.GetAll(spanCtx)
 	if err != nil {
+		span.SetTag("error", true)
 		ctx.Response.SetStatusCode(http.StatusInternalServerError)
 		ctx.Response.SetBodyString(fmt.Sprintf("Failed to fetch models: %v", err))
 		return
 	}
 
+	// Преобразуем список моделей в JSON
 	data, err := json.Marshal(models)
 	if err != nil {
+		span.SetTag("error", true)
 		ctx.Response.SetStatusCode(http.StatusInternalServerError)
 		ctx.Response.SetBodyString(fmt.Sprintf("Failed to marshal models data: %v", err))
 		return

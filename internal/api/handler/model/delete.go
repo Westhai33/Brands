@@ -1,13 +1,13 @@
 package model
 
 import (
+	"Brands/internal/api/handler"
 	"context"
 	"fmt"
 	"github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/log"
 	"github.com/valyala/fasthttp"
 	"net/http"
-	"strconv"
-	"time"
 )
 
 // DeleteModel godoc
@@ -16,7 +16,7 @@ import (
 // @Tags models
 // @Accept json
 // @Produce json
-// @Param id path int true "ID модели"
+// @Param id path string true "ID модели (UUIDv7)"
 // @Success 200 {string} string "Model soft-deleted successfully"
 // @Failure 400 {string} string "Invalid ID format"
 // @Failure 500 {string} string "Failed to delete model"
@@ -27,21 +27,30 @@ func (api *ModelHandler) DeleteModel(ctx *fasthttp.RequestCtx) {
 	if !ok {
 		spanCtx = ctx
 	}
-	spanCtx, cancel := context.WithTimeout(spanCtx, 5*time.Second)
-	defer cancel()
+
 	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "ModelHandler.DeleteModel")
 	defer span.Finish()
 
-	idStr := ctx.UserValue("id").(string)
-	id, err := strconv.ParseInt(idStr, 10, 64)
+	// Извлечение и парсинг UUID из пути запроса
+	id, err := handler.ExtractUUIDFromPath(ctx, "id")
 	if err != nil {
-		ctx.Response.SetStatusCode(http.StatusBadRequest)
+		span.SetTag("error", true)
+		span.LogFields(
+			log.String("event", "invalid_id"),
+			log.Error(err),
+		)
+		ctx.SetStatusCode(http.StatusBadRequest)
 		ctx.Response.SetBodyString("Invalid ID format")
 		return
 	}
-
 	err = api.ModelService.SoftDelete(spanCtx, id)
 	if err != nil {
+		span.SetTag("error", true)
+		span.LogFields(
+			log.String("event", "delete_model_error"),
+			log.Error(err),
+			log.String("model.id", id.String()),
+		)
 		ctx.Response.SetStatusCode(http.StatusInternalServerError)
 		ctx.Response.SetBodyString(fmt.Sprintf("Failed to delete model: %v", err))
 		return
@@ -57,7 +66,7 @@ func (api *ModelHandler) DeleteModel(ctx *fasthttp.RequestCtx) {
 // @Tags models
 // @Accept json
 // @Produce json
-// @Param id path int true "ID модели"
+// @Param id path string true "ID модели (UUIDv7)"
 // @Success 200 {string} string "Model restored successfully"
 // @Failure 400 {string} string "Invalid ID format"
 // @Failure 500 {string} string "Failed to restore model"
@@ -68,21 +77,32 @@ func (api *ModelHandler) RestoreModel(ctx *fasthttp.RequestCtx) {
 	if !ok {
 		spanCtx = ctx
 	}
-	spanCtx, cancel := context.WithTimeout(spanCtx, 5*time.Second)
-	defer cancel()
+
 	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "ModelHandler.RestoreModel")
 	defer span.Finish()
 
-	idStr := ctx.UserValue("id").(string)
-	id, err := strconv.ParseInt(idStr, 10, 64)
+	// Извлечение и парсинг UUID из пути запроса
+	id, err := handler.ExtractUUIDFromPath(ctx, "id")
 	if err != nil {
-		ctx.Response.SetStatusCode(http.StatusBadRequest)
+		span.SetTag("error", true)
+		span.LogFields(
+			log.String("event", "invalid_id"),
+			log.Error(err),
+		)
+		ctx.SetStatusCode(http.StatusBadRequest)
 		ctx.Response.SetBodyString("Invalid ID format")
 		return
 	}
 
 	err = api.ModelService.Restore(spanCtx, id)
 	if err != nil {
+		span.SetTag("error", true)
+		span.SetTag("error", true)
+		span.LogFields(
+			log.String("event", "restore_model_error"),
+			log.Error(err),
+			log.String("model.id", id.String()),
+		)
 		ctx.Response.SetStatusCode(http.StatusInternalServerError)
 		ctx.Response.SetBodyString(fmt.Sprintf("Failed to restore model: %v", err))
 		return

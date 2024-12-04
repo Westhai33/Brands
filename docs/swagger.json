@@ -31,20 +31,6 @@
                     "brand"
                 ],
                 "summary": "Получение всех брендов",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Фильтрация по полю",
-                        "name": "filter",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Сортировка по полю",
-                        "name": "sort",
-                        "in": "query"
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "Список брендов",
@@ -125,7 +111,7 @@
                 "summary": "Мягкое удаление бренда",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "ID бренда",
                         "name": "id",
                         "in": "path",
@@ -169,7 +155,7 @@
                 "summary": "Восстановление мягко удалённого бренда",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "ID бренда",
                         "name": "id",
                         "in": "path",
@@ -213,8 +199,8 @@
                 "summary": "Обновление бренда по ID",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "ID бренда",
+                        "type": "string",
+                        "description": "ID бренда (UUIDv7)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -272,7 +258,7 @@
                 "summary": "Получение бренда по ID",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "ID бренда",
                         "name": "id",
                         "in": "path",
@@ -314,26 +300,6 @@
                     "models"
                 ],
                 "summary": "Получение всех моделей",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Фильтрация по полю",
-                        "name": "filter",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Сортировка по полю",
-                        "name": "sort",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Порядок сортировки (asc, desc)",
-                        "name": "order",
-                        "in": "query"
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "Список моделей",
@@ -414,8 +380,8 @@
                 "summary": "Мягкое удаление модели",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "ID модели",
+                        "type": "string",
+                        "description": "ID модели (UUIDv7)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -458,8 +424,8 @@
                 "summary": "Восстановление мягко удалённой модели",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "ID модели",
+                        "type": "string",
+                        "description": "ID модели (UUIDv7)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -502,8 +468,8 @@
                 "summary": "Обновление модели по ID",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "ID модели",
+                        "type": "string",
+                        "description": "ID модели (UUIDv7)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -561,8 +527,8 @@
                 "summary": "Получение модели по ID",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "ID модели",
+                        "type": "string",
+                        "description": "ID модели (UUIDv7)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -612,7 +578,7 @@
                     "type": "integer"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "is_deleted": {
                     "description": "Флаг удаления",
@@ -656,14 +622,14 @@
             "type": "object",
             "properties": {
                 "brand_id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "created_at": {
                     "description": "Время создания",
                     "type": "string"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "is_deleted": {
                     "description": "Флаг удаления",

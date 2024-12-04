@@ -8,7 +8,6 @@ import (
 	"github.com/opentracing/opentracing-go/log"
 	"github.com/valyala/fasthttp"
 	"net/http"
-	"time"
 )
 
 // GetAllBrands godoc
@@ -26,8 +25,6 @@ func (api *BrandHandler) GetAllBrands(ctx *fasthttp.RequestCtx) {
 	if !ok {
 		spanCtx = ctx
 	}
-	spanCtx, cancel := context.WithTimeout(spanCtx, 5*time.Second)
-	defer cancel()
 	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "BrandHandler.GetAllBrands")
 
 	// Вызов метода GetAll из сервиса с фильтрами и сортировкой
@@ -36,7 +33,7 @@ func (api *BrandHandler) GetAllBrands(ctx *fasthttp.RequestCtx) {
 		span.SetTag("error", true)
 		span.LogFields(
 			log.String("event", "failed_to_fetch_brands"),
-			log.String("error", err.Error()),
+			log.Error(err),
 		)
 		ctx.Response.SetStatusCode(http.StatusInternalServerError)
 		ctx.Response.SetBodyString(fmt.Sprintf("Failed to fetch brand: %v", err))
@@ -49,14 +46,13 @@ func (api *BrandHandler) GetAllBrands(ctx *fasthttp.RequestCtx) {
 		span.SetTag("error", true)
 		span.LogFields(
 			log.String("event", "failed_to_marshal_brands"),
-			log.String("error", err.Error()),
+			log.Object("brand", brands),
+			log.Error(err),
 		)
 		ctx.Response.SetStatusCode(http.StatusInternalServerError)
 		ctx.Response.SetBodyString(fmt.Sprintf("Failed to marshal brand data: %v", err))
 		return
 	}
-
-	// Отправляем список брендов в ответ
 	ctx.Response.SetStatusCode(http.StatusOK)
 	ctx.Response.SetBody(data)
 }

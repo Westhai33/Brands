@@ -16,41 +16,40 @@ func (r *BrandRepository) Update(ctx context.Context, brand *dto.Brand) error {
 
 	query := `
         UPDATE brands SET 
-            name = $2, 
-            link = $3, 
-            description = $4, 
-            logo_url = $5, 
-            cover_image_url = $6, 
-            founded_year = $7, 
-            origin_country = $8, 
-            popularity = $9, 
-            is_premium = $10, 
-            is_upcoming = $11, 
+            name = @name, 
+            link = @link, 
+            description = @description, 
+            logo_url = @logo_url, 
+            cover_image_url = @cover_image_url, 
+            founded_year = @founded_year, 
+            origin_country = @origin_country, 
+            popularity = @popularity, 
+            is_premium = @is_premium, 
+            is_upcoming = @is_upcoming, 
             updated_at = NOW()
-        WHERE id = $1 AND is_deleted = false
-        RETURNING id
+        WHERE id = @id AND is_deleted = false
     `
+	args := pgx.NamedArgs{
+		"id":              brand.ID,
+		"name":            brand.Name,
+		"link":            brand.Link,
+		"description":     brand.Description,
+		"logo_url":        brand.LogoURL,
+		"cover_image_url": brand.CoverImageURL,
+		"founded_year":    brand.FoundedYear,
+		"origin_country":  brand.OriginCountry,
+		"popularity":      brand.Popularity,
+		"is_premium":      brand.IsPremium,
+		"is_upcoming":     brand.IsUpcoming,
+	}
 
-	err := r.pool.QueryRow(ctx, query,
-		brand.ID,
-		brand.Name,
-		brand.Link,
-		brand.Description,
-		brand.LogoURL,
-		brand.CoverImageURL,
-		brand.FoundedYear,
-		brand.OriginCountry,
-		brand.Popularity,
-		brand.IsPremium,
-		brand.IsUpcoming,
-	).Scan()
+	_, err := r.pool.Exec(ctx, query, args)
 
 	if err != nil {
-		span.SetTag("error", true)
 		span.LogFields(log.Error(err))
 		r.log.Error().
 			Err(err).
-			Int64("brand_id", brand.ID).
+			Interface("brand", brand).
 			Msg("Failed to update brand")
 
 		if errors.Is(err, pgx.ErrNoRows) {

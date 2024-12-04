@@ -22,7 +22,6 @@ func (r *ModelRepository) GetAll(ctx context.Context) ([]dto.Model, error) {
 	// Выполняем запрос
 	rows, err := r.pool.Query(ctx, query)
 	if err != nil {
-
 		span.LogFields(
 			log.Error(err),
 			log.String("query", query),

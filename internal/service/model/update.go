@@ -13,7 +13,6 @@ func (s *ModelService) Update(ctx context.Context, model *dto.Model) error {
 
 	err := s.repo.Update(ctx, model)
 	if err != nil {
-
 		return err
 	}
 	return nil

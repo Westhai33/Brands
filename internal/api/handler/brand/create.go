@@ -39,6 +39,7 @@ func (api *BrandHandler) CreateBrand(ctx *fasthttp.RequestCtx) {
 	var brand dto.Brand
 	err := decoder.Decode(&brand)
 	if err != nil {
+		span.SetTag("error", true)
 		span.LogFields(
 			log.String("event", "decode_error"),
 			log.Error(err),
@@ -59,6 +60,7 @@ func (api *BrandHandler) CreateBrand(ctx *fasthttp.RequestCtx) {
 		return
 	}
 	if brand.Name == "" {
+		span.SetTag("error", true)
 		err = errors.New("Name is required")
 		ctx.Response.SetStatusCode(http.StatusBadRequest)
 		ctx.Response.SetBodyString(err.Error())

@@ -1,12 +1,11 @@
 package model
 
 import (
+	"Brands/internal/dto"
+	"Brands/internal/repository/brand"
 	"context"
 	"fmt"
 	"github.com/jackc/pgx/v5"
-
-	"Brands/internal/dto"
-	"Brands/internal/repository/brand"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/log"
 )
@@ -18,7 +17,6 @@ func (r *ModelRepository) Create(ctx context.Context, model *dto.Model) error {
 
 	exists, err := r.brandExists(ctx, model.BrandID)
 	if err != nil {
-
 		span.LogFields(
 			log.Error(err),
 			log.Object("model", model),
@@ -55,7 +53,6 @@ func (r *ModelRepository) Create(ctx context.Context, model *dto.Model) error {
 	}
 	_, err = r.pool.Exec(ctx, query, args)
 	if err != nil {
-
 		span.LogFields(
 			log.Error(err),
 			log.Object("brand", model),

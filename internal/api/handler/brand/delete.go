@@ -50,7 +50,7 @@ func (api *BrandHandler) DeleteBrand(ctx *fasthttp.RequestCtx) {
 
 	err = api.BrandService.SoftDelete(spanCtx, id)
 	if err != nil {
-
+		span.SetTag("error", true)
 		if errors.Is(err, brandrepo.ErrBrandNotFound) {
 			span.LogFields(
 				log.String("event", "brand_not_found"),

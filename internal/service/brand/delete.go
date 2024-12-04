@@ -13,7 +13,6 @@ func (s *BrandService) SoftDelete(ctx context.Context, id uuid.UUID) error {
 
 	err := s.repo.SoftDelete(ctx, id)
 	if err != nil {
-
 		return err
 	}
 	return nil
@@ -26,7 +25,6 @@ func (s *BrandService) Restore(ctx context.Context, id uuid.UUID) error {
 
 	err := s.repo.Restore(ctx, id)
 	if err != nil {
-
 		return err
 	}
 	return nil

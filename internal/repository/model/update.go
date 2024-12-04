@@ -10,7 +10,7 @@ import (
 )
 
 // Update обновляет данные модели
-func (r *Repository) Update(ctx context.Context, model *dto.Model) error {
+func (r *ModelRepository) Update(ctx context.Context, model *dto.Model) error {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "ModelRepository.Update")
 	defer span.Finish()
 

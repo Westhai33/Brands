@@ -11,7 +11,7 @@ import (
 )
 
 // GetByID получает модель по ID
-func (r *Repository) GetByID(ctx context.Context, id int64) (*dto.Model, error) {
+func (r *ModelRepository) GetByID(ctx context.Context, id int64) (*dto.Model, error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "ModelRepository.GetByID")
 	defer span.Finish()
 

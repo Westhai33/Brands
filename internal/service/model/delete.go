@@ -6,7 +6,7 @@ import (
 )
 
 // SoftDelete мягко удаляет модель
-func (s *Service) SoftDelete(ctx context.Context, id int64) error {
+func (s *ModelService) SoftDelete(ctx context.Context, id int64) error {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "ModelService.SoftDelete")
 	defer span.Finish()
 
@@ -19,7 +19,7 @@ func (s *Service) SoftDelete(ctx context.Context, id int64) error {
 }
 
 // Restore восстанавливает мягко удалённую модель
-func (s *Service) Restore(ctx context.Context, id int64) error {
+func (s *ModelService) Restore(ctx context.Context, id int64) error {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "ModelService.Restore")
 	defer span.Finish()
 

@@ -6,14 +6,12 @@ import (
 	brandhandler "Brands/internal/api/handler/brand"
 	modelhandler "Brands/internal/api/handler/model"
 	"Brands/internal/config"
-	"Brands/internal/dto"
 	"Brands/internal/metrics"
 	"Brands/internal/pg"
 	"Brands/internal/repository/brand"
 	"Brands/internal/repository/model"
 	brandservice "Brands/internal/service/brand"
 	modelservice "Brands/internal/service/model"
-	"Brands/pkg/pool"
 	"Brands/pkg/tracer"
 	"Brands/pkg/yamlreader"
 	"Brands/pkg/zerohook"
@@ -24,7 +22,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 )
 
 // @title Brands API
@@ -62,10 +59,6 @@ func main() {
 	}
 	defer pgInstance.Close()
 
-	// Создание WorkerPool
-	wp := pool.NewWorkerPool(ctx)
-	defer wp.Stop()
-
 	// Создание репозиториев
 	br, err := brand.New(ctx, pgInstance.Pool(), zerohook.Logger)
 	if err != nil {
@@ -79,8 +72,8 @@ func main() {
 	}
 
 	// Создание сервисов с передачей WorkerPool
-	bs := brandservice.New(br, wp, zerohook.Logger)
-	ms := modelservice.New(mr, wp, zerohook.Logger)
+	bs := brandservice.New(br, zerohook.Logger)
+	ms := modelservice.New(mr, zerohook.Logger)
 
 	// Создание хендлеров
 	bh := brandhandler.New(bs)
@@ -100,46 +93,6 @@ func main() {
 	}()
 
 	go metrics.StartPrometheusServer(fmt.Sprintf(":%d", cfg.Prometheus.Port))
-
-	// Пример создания бренда с использованием WorkerPool
-	wp.Submit(func(workerID int) {
-		brand := &dto.Brand{
-			Name:          "SuperBrand",
-			Link:          "https://superbrand.com",
-			Description:   "SuperBrand is known for its high-quality products and innovative designs.",
-			LogoURL:       "https://superbrand.com/logo.png",
-			CoverImageURL: "https://superbrand.com/cover.jpg",
-			FoundedYear:   1998,
-			OriginCountry: "USA",
-			Popularity:    85,
-			IsPremium:     true,
-			IsUpcoming:    false,
-			IsDeleted:     false,
-			CreatedAt:     time.Now(),
-			UpdatedAt:     time.Now(),
-		}
-		zerohook.Logger.Info().Interface("obj", brand).Int("worker_id", workerID).Send()
-		_, err := bs.Create(ctx, brand)
-		if err != nil {
-			zerohook.Logger.Error().Err(err).Msg("Failed to create brand asynchronously")
-		}
-	})
-
-	// Пример создания модели с использованием WorkerPool
-	wp.Submit(func(workerID int) {
-		model := &dto.Model{
-			BrandID:     1, // Замените на реальный ID бренда
-			Name:        "Model X",
-			ReleaseDate: time.Now(),
-			IsUpcoming:  false,
-			IsLimited:   true,
-		}
-		zerohook.Logger.Info().Interface("obj", model).Int("worker_id", workerID).Send()
-		_, err := ms.Create(ctx, model)
-		if err != nil {
-			zerohook.Logger.Error().Err(err).Msg("Failed to create model asynchronously")
-		}
-	})
 
 	// Завершение программы
 	quit := make(chan os.Signal, 1)

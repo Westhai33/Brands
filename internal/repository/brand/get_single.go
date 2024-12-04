@@ -11,7 +11,7 @@ import (
 )
 
 // GetByID получает бренд по ID
-func (r *Repository) GetByID(
+func (r *BrandRepository) GetByID(
 	ctx context.Context,
 	id int64,
 ) (*dto.Brand, error) {

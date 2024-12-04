@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (r *Repository) Update(ctx context.Context, brand *dto.Brand) error {
+func (r *BrandRepository) Update(ctx context.Context, brand *dto.Brand) error {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "BrandRepository.Update")
 	defer span.Finish()
 

@@ -6,7 +6,7 @@ import (
 )
 
 // SoftDelete мягко удаляет бренд
-func (s *Service) SoftDelete(ctx context.Context, id int64) error {
+func (s *BrandService) SoftDelete(ctx context.Context, id int64) error {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "BrandService.SoftDelete")
 	defer span.Finish()
 
@@ -19,7 +19,7 @@ func (s *Service) SoftDelete(ctx context.Context, id int64) error {
 }
 
 // Restore восстанавливает мягко удалённый бренд
-func (s *Service) Restore(ctx context.Context, id int64) error {
+func (s *BrandService) Restore(ctx context.Context, id int64) error {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "BrandService.Restore")
 	defer span.Finish()
 

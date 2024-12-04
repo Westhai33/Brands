@@ -10,8 +10,8 @@ import (
 )
 
 // Update обновляет данные модели
-func (s *Service) Update(ctx context.Context, model *dto.Model) error {
-	span, ctx := opentracing.StartSpanFromContext(ctx, "Service.Update")
+func (s *ModelService) Update(ctx context.Context, model *dto.Model) error {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "ModelService.Update")
 	defer span.Finish()
 
 	if model.Name == "" {

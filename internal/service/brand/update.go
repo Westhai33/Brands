@@ -9,7 +9,7 @@ import (
 )
 
 // Update обновляет данные бренда
-func (s *Service) Update(ctx context.Context, brand *dto.Brand) error {
+func (s *BrandService) Update(ctx context.Context, brand *dto.Brand) error {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "BrandService.Update")
 	defer span.Finish()
 

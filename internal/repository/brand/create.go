@@ -10,7 +10,7 @@ import (
 )
 
 // Create создает новый бренд
-func (r *Repository) Create(
+func (r *BrandRepository) Create(
 	ctx context.Context,
 	brand *dto.Brand,
 ) (int64, error) {

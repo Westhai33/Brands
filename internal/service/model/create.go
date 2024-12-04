@@ -11,7 +11,7 @@ import (
 )
 
 // Create создает новую модель
-func (s *Service) Create(ctx context.Context, model *dto.Model) (int64, error) {
+func (s *ModelService) Create(ctx context.Context, model *dto.Model) (int64, error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "ModelService.Create")
 	defer span.Finish()
 

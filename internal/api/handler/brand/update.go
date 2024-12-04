@@ -3,6 +3,7 @@ package brand
 import (
 	"Brands/internal/api/handler"
 	"Brands/internal/dto"
+	modelrepo "Brands/internal/repository/model"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -72,6 +73,15 @@ func (api *BrandHandler) UpdateBrand(ctx *fasthttp.RequestCtx) {
 	err = api.BrandService.Update(spanCtx, &brand)
 	if err != nil {
 		span.SetTag("error", true)
+		if errors.Is(err, modelrepo.ErrModelNotFound) {
+			span.LogFields(
+				log.String("event", "brand_not_found"),
+				log.String("model.id", brand.ID.String()),
+			)
+			ctx.Response.SetStatusCode(http.StatusNotFound)
+			ctx.Response.SetBodyString(fmt.Sprintf("Brand not found with ID: %s", brand.ID.String()))
+			return
+		}
 		span.LogFields(
 			log.String("event", "update_brand_error"),
 			log.Error(err),

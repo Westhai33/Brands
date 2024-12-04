@@ -3,6 +3,7 @@ package model
 import (
 	"Brands/internal/api/handler"
 	"Brands/internal/dto"
+	modelrepo "Brands/internal/repository/model"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -70,6 +71,15 @@ func (api *ModelHandler) UpdateModel(ctx *fasthttp.RequestCtx) {
 	err = api.ModelService.Update(spanCtx, &model)
 	if err != nil {
 		span.SetTag("error", true)
+		if errors.Is(err, modelrepo.ErrModelNotFound) {
+			span.LogFields(
+				log.String("event", "model_not_found"),
+				log.String("model.id", model.ID.String()),
+			)
+			ctx.Response.SetStatusCode(http.StatusNotFound)
+			ctx.Response.SetBodyString(fmt.Sprintf("Model not found with ID: %s", model.ID.String()))
+			return
+		}
 		span.LogFields(
 			log.String("event", "update_model_error"),
 			log.Error(err),

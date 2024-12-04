@@ -52,11 +52,18 @@ func (r *ModelRepository) Update(ctx context.Context, model *dto.Model) error {
 		"is_upcoming":  model.IsUpcoming,
 		"is_limited":   model.IsLimited,
 	}
-	_, err = r.pool.Exec(ctx, query, args)
+	cmdTag, err := r.pool.Exec(ctx, query, args)
 	if err != nil {
 		span.LogFields(log.Error(err))
 		r.log.Error().Err(err).Interface("model", model).Msg("Failed to update model")
 		return err
+	}
+	if cmdTag.RowsAffected() == 0 {
+		span.LogFields(log.Error(ErrModelNotFound))
+		r.log.Warn().
+			Interface("model", model).
+			Msg("No model found to update")
+		return ErrModelNotFound
 	}
 	return nil
 }

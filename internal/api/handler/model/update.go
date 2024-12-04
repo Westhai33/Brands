@@ -56,7 +56,7 @@ func (api *ModelHandler) UpdateModel(ctx *fasthttp.RequestCtx) {
 		ctx.Response.SetBodyString(err.Error())
 		return
 	}
-	// Извлечение и парсинг UUID из пути запроса
+
 	model.ID, err = utils.ExtractUUIDFromPath(ctx, "id")
 	if err != nil {
 		span.SetTag("error", true)

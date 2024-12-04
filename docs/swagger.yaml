@@ -15,7 +15,6 @@ definitions:
         description: Год основания
         type: integer
       id:
-        description: BIGSERIAL
         type: integer
       is_deleted:
         description: Флаг удаления
@@ -27,13 +26,13 @@ definitions:
         description: Флаг "Скоро"
         type: boolean
       link:
-        description: Может быть пустым
+        description: Бренд на английском
         type: string
       logo_url:
         description: URL логотипа
         type: string
       name:
-        description: NOT NULL
+        description: Название бренда
         type: string
       origin_country:
         description: Страна происхождения
@@ -48,13 +47,11 @@ definitions:
   dto.Model:
     properties:
       brand_id:
-        description: Ссылка на бренд
         type: integer
       created_at:
         description: Время создания
         type: string
       id:
-        description: BIGSERIAL
         type: integer
       is_deleted:
         description: Флаг удаления
@@ -65,6 +62,9 @@ definitions:
       is_upcoming:
         description: Флаг "Скоро"
         type: boolean
+      link:
+        description: Модель на английском
+        type: string
       name:
         description: Название модели
         type: string
@@ -117,7 +117,7 @@ paths:
             type: string
       summary: Получение бренда по ID
       tags:
-      - brands
+      - brand
   /brands/all:
     get:
       consumes:
@@ -142,12 +142,12 @@ paths:
               $ref: '#/definitions/dto.Brand'
             type: array
         "500":
-          description: Failed to fetch brands
+          description: Failed to fetch brand
           schema:
             type: string
       summary: Получение всех брендов
       tags:
-      - brands
+      - brand
   /brands/create:
     post:
       consumes:
@@ -177,7 +177,7 @@ paths:
             type: string
       summary: Создание нового бренда
       tags:
-      - brands
+      - brand
   /brands/delete/{id}:
     delete:
       consumes:
@@ -206,7 +206,7 @@ paths:
             type: string
       summary: Мягкое удаление бренда
       tags:
-      - brands
+      - brand
   /brands/restore/{id}:
     post:
       consumes:
@@ -235,7 +235,7 @@ paths:
             type: string
       summary: Восстановление мягко удалённого бренда
       tags:
-      - brands
+      - brand
   /brands/update/{id}:
     put:
       consumes:
@@ -274,7 +274,7 @@ paths:
             type: string
       summary: Обновление бренда по ID
       tags:
-      - brands
+      - brand
   /models/{id}:
     get:
       consumes:

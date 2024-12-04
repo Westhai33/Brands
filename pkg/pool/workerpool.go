@@ -73,10 +73,10 @@ func (wp *WorkerPool) worker(workerID int) {
 		case <-wp.stopWorkerCh: // Завершение работы воркера по сигналу остановки
 			return
 		case task, ok := <-wp.tasks: // Получение задачи из канала
-			if !ok { // Если канал задач закрыт, воркер завершает работу
+			if !ok {
 				return
 			}
-			task(workerID) // Выполнение задачи
+			task(workerID)
 		}
 	}
 }
@@ -100,7 +100,6 @@ func (wp *WorkerPool) Stop() {
 }
 
 // Resize изменяет количество воркеров в пуле.
-// Увеличивает или уменьшает количество воркеров в зависимости от нового размера.
 func (wp *WorkerPool) Resize(newSize int) {
 	wp.mu.Lock()
 	diff := newSize - wp.maxWorkers

@@ -6,7 +6,8 @@ log:
   origin: dev
 
 postgres:
-  conn: "postgres://admin:pgpwdbrands@brands_postgres:5432/itemcloudbrands?sslmode=disable"
+  conn: "postgres://admin:pgpwdbrands@localhost:5432/itemcloudbrands?sslmode=disable"
+
 
 prometheus:
   port: 8099                        # Порт для экспорта метрик Prometheus
@@ -14,6 +15,6 @@ prometheus:
   scrape_interval: 15s              # Интервал сбора метрик
 
 jaeger:
-  agent_host: brands_jaeger        # Адрес агента Jaeger
+  agent_host: localhost            # Адрес агента Jaeger
   agent_port: 6831                 # Порт агента Jaeger
   service_name: brands             # Имя сервиса для Jaeger

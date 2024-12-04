@@ -5,27 +5,26 @@ go 1.22.7
 toolchain go1.23.0
 
 require (
-	github.com/envoyproxy/protoc-gen-validate v1.1.0
+	github.com/google/uuid v1.6.0
 	github.com/fasthttp/router v1.5.2
 	github.com/gojuno/minimock/v3 v3.4.3
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.24.0
 	github.com/jackc/pgx/v5 v5.7.1
+	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.20.5
-	github.com/rs/cors v1.11.1
 	github.com/rs/zerolog v1.33.0
 	github.com/stretchr/testify v1.9.0
 	github.com/swaggo/fasthttp-swagger v1.0.2
 	github.com/swaggo/http-swagger v1.3.4
 	github.com/swaggo/swag v1.16.4
+	github.com/uber/jaeger-client-go v2.30.0+incompatible
+	github.com/uber/jaeger-lib v2.4.1+incompatible
 	github.com/valyala/fasthttp v1.57.0
-	google.golang.org/genproto/googleapis/api v0.0.0-20241118233622-e639e219e697
-	google.golang.org/grpc v1.68.0
-	google.golang.org/protobuf v1.35.2
 	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
+	github.com/HdrHistogram/hdrhistogram-go v1.1.2 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -53,11 +52,12 @@ require (
 	github.com/swaggo/files v0.0.0-20220610200504-28940afbdbfe // indirect
 	github.com/swaggo/files/v2 v2.0.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
+	go.uber.org/atomic v1.11.0 // indirect
 	golang.org/x/crypto v0.29.0 // indirect
 	golang.org/x/net v0.31.0 // indirect
 	golang.org/x/sync v0.9.0 // indirect
 	golang.org/x/sys v0.27.0 // indirect
 	golang.org/x/text v0.20.0 // indirect
 	golang.org/x/tools v0.27.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20241118233622-e639e219e697 // indirect
+	google.golang.org/protobuf v1.35.2 // indirect
 )

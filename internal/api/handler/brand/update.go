@@ -38,6 +38,7 @@ func (api *BrandHandler) UpdateBrand(ctx *fasthttp.RequestCtx) {
 	var brand dto.Brand
 	err := decoder.Decode(&brand)
 	if err != nil {
+		span.SetTag("error", true)
 		span.LogFields(
 			log.String("event", "decode_error"),
 			log.Error(err),
@@ -56,6 +57,7 @@ func (api *BrandHandler) UpdateBrand(ctx *fasthttp.RequestCtx) {
 
 	err = api.BrandService.Update(spanCtx, &brand)
 	if err != nil {
+		span.SetTag("error", true)
 		span.LogFields(
 			log.String("event", "update_brand_error"),
 			log.Error(err),

@@ -30,6 +30,7 @@ func (api *ModelHandler) GetAllModels(ctx *fasthttp.RequestCtx) {
 
 	models, err := api.ModelService.GetAll(spanCtx)
 	if err != nil {
+		span.SetTag("error", true)
 		ctx.Response.SetStatusCode(http.StatusInternalServerError)
 		ctx.Response.SetBodyString(fmt.Sprintf("Failed to fetch models: %v", err))
 		return
@@ -38,6 +39,7 @@ func (api *ModelHandler) GetAllModels(ctx *fasthttp.RequestCtx) {
 	// Преобразуем список моделей в JSON
 	data, err := json.Marshal(models)
 	if err != nil {
+		span.SetTag("error", true)
 		ctx.Response.SetStatusCode(http.StatusInternalServerError)
 		ctx.Response.SetBodyString(fmt.Sprintf("Failed to marshal models data: %v", err))
 		return

@@ -49,6 +49,7 @@ func (api *ModelHandler) GetModelByID(ctx *fasthttp.RequestCtx) {
 
 	model, err := api.ModelService.GetByID(spanCtx, id)
 	if err != nil {
+		span.SetTag("error", true)
 		if errors.Is(err, modelrepo.ErrModelNotFound) {
 			span.LogFields(
 				log.String("event", "model_not_found"),
@@ -70,6 +71,7 @@ func (api *ModelHandler) GetModelByID(ctx *fasthttp.RequestCtx) {
 
 	data, err := json.Marshal(model)
 	if err != nil {
+		span.SetTag("error", true)
 		span.LogFields(
 			log.String("event", "json_marshal_error"),
 			log.Error(err),

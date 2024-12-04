@@ -97,6 +97,7 @@ func (api *ModelHandler) RestoreModel(ctx *fasthttp.RequestCtx) {
 	err = api.ModelService.Restore(spanCtx, id)
 	if err != nil {
 		span.SetTag("error", true)
+		span.SetTag("error", true)
 		span.LogFields(
 			log.String("event", "restore_model_error"),
 			log.Error(err),

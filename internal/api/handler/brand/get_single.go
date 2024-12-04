@@ -48,6 +48,7 @@ func (api *BrandHandler) GetBrandByID(ctx *fasthttp.RequestCtx) {
 
 	brand, err := api.BrandService.GetByID(spanCtx, id)
 	if err != nil {
+		span.SetTag("error", true)
 		if errors.Is(err, brandrepo.ErrBrandNotFound) {
 			span.LogFields(
 				log.String("event", "brand_not_found"),
@@ -69,6 +70,7 @@ func (api *BrandHandler) GetBrandByID(ctx *fasthttp.RequestCtx) {
 
 	data, err := json.Marshal(brand)
 	if err != nil {
+		span.SetTag("error", true)
 		span.LogFields(
 			log.String("event", "json_marshal_error"),
 			log.Error(err),

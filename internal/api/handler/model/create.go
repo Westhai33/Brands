@@ -39,6 +39,7 @@ func (api *ModelHandler) CreateModel(ctx *fasthttp.RequestCtx) {
 	var model dto.Model
 	err := decoder.Decode(&model)
 	if err != nil {
+		span.SetTag("error", true)
 		ctx.Response.SetStatusCode(http.StatusBadRequest)
 		ctx.Response.SetBodyString(fmt.Sprintf("Failed to decode request body: %v", err))
 		return
@@ -58,6 +59,7 @@ func (api *ModelHandler) CreateModel(ctx *fasthttp.RequestCtx) {
 
 	err = api.ModelService.Create(spanCtx, &model)
 	if err != nil {
+		span.SetTag("error", true)
 		span.LogFields(
 			log.String("event", "create_model_error"),
 			log.Object("model", model),

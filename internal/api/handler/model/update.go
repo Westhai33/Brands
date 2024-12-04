@@ -38,6 +38,7 @@ func (api *ModelHandler) UpdateModel(ctx *fasthttp.RequestCtx) {
 	var model dto.Model
 	err := decoder.Decode(&model)
 	if err != nil {
+		span.SetTag("error", true)
 		span.LogFields(
 			log.String("event", "decode_error"),
 			log.Error(err),
@@ -55,6 +56,7 @@ func (api *ModelHandler) UpdateModel(ctx *fasthttp.RequestCtx) {
 
 	err = api.ModelService.Update(spanCtx, &model)
 	if err != nil {
+		span.SetTag("error", true)
 		span.LogFields(
 			log.String("event", "update_model_error"),
 			log.Error(err),

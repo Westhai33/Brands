@@ -30,6 +30,7 @@ func (api *BrandHandler) GetAllBrands(ctx *fasthttp.RequestCtx) {
 	// Вызов метода GetAll из сервиса с фильтрами и сортировкой
 	brands, err := api.BrandService.GetAll(spanCtx)
 	if err != nil {
+		span.SetTag("error", true)
 		span.LogFields(
 			log.String("event", "failed_to_fetch_brands"),
 			log.Error(err),
@@ -42,6 +43,7 @@ func (api *BrandHandler) GetAllBrands(ctx *fasthttp.RequestCtx) {
 	// Преобразуем список брендов в JSON
 	data, err := json.Marshal(brands)
 	if err != nil {
+		span.SetTag("error", true)
 		span.LogFields(
 			log.String("event", "failed_to_marshal_brands"),
 			log.Object("brand", brands),

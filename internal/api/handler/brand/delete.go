@@ -25,7 +25,7 @@ import (
 // @Failure 400 {string} string "Invalid ID format"
 // @Failure 500 {string} string "Failed to delete brand"
 // @Router /brands/delete/{id} [delete]
-func (api *Handler) DeleteBrand(ctx *fasthttp.RequestCtx) {
+func (api *BrandHandler) DeleteBrand(ctx *fasthttp.RequestCtx) {
 	var spanCtx context.Context
 	spanCtx, ok := ctx.UserValue("traceContext").(context.Context)
 	if !ok {
@@ -33,7 +33,7 @@ func (api *Handler) DeleteBrand(ctx *fasthttp.RequestCtx) {
 	}
 	spanCtx, cancel := context.WithTimeout(spanCtx, 5*time.Second)
 	defer cancel()
-	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "Handler.DeleteBrand")
+	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "BrandHandler.DeleteBrand")
 	defer span.Finish()
 
 	idStr := ctx.UserValue("id").(string)
@@ -85,10 +85,10 @@ func (api *Handler) DeleteBrand(ctx *fasthttp.RequestCtx) {
 // @Failure 400 {string} string "Invalid ID format"
 // @Failure 500 {string} string "Failed to restore brand"
 // @Router /brands/restore/{id} [post]
-func (api *Handler) RestoreBrand(ctx *fasthttp.RequestCtx) {
+func (api *BrandHandler) RestoreBrand(ctx *fasthttp.RequestCtx) {
 	spanCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "Handler.RestoreBrand")
+	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "BrandHandler.RestoreBrand")
 	defer span.Finish()
 
 	idStr := ctx.UserValue("id").(string)

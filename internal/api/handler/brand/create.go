@@ -25,7 +25,7 @@ import (
 // @Failure 400 {string} string "Invalid request body"
 // @Failure 500 {string} string "Failed to create brand"
 // @Router /brands/create [post]
-func (api *Handler) CreateBrand(ctx *fasthttp.RequestCtx) {
+func (api *BrandHandler) CreateBrand(ctx *fasthttp.RequestCtx) {
 	var spanCtx context.Context
 	spanCtx, ok := ctx.UserValue("traceContext").(context.Context)
 	if !ok {
@@ -33,7 +33,7 @@ func (api *Handler) CreateBrand(ctx *fasthttp.RequestCtx) {
 	}
 	spanCtx, cancel := context.WithTimeout(spanCtx, 5*time.Second)
 	defer cancel()
-	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "Handler.CreateBrand")
+	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "BrandHandler.CreateBrand")
 	defer span.Finish()
 
 	decoder := json.NewDecoder(bytes.NewReader(ctx.PostBody()))

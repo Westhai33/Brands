@@ -20,7 +20,7 @@ import (
 // @Success 200 {array} dto.Brand "Список брендов"
 // @Failure 500 {string} string "Failed to fetch brand"
 // @Router /brands/all [get]
-func (api *Handler) GetAllBrands(ctx *fasthttp.RequestCtx) {
+func (api *BrandHandler) GetAllBrands(ctx *fasthttp.RequestCtx) {
 	var spanCtx context.Context
 	spanCtx, ok := ctx.UserValue("traceContext").(context.Context)
 	if !ok {
@@ -28,7 +28,7 @@ func (api *Handler) GetAllBrands(ctx *fasthttp.RequestCtx) {
 	}
 	spanCtx, cancel := context.WithTimeout(spanCtx, 5*time.Second)
 	defer cancel()
-	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "Handler.GetAllBrands")
+	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "BrandHandler.GetAllBrands")
 
 	// Вызов метода GetAll из сервиса с фильтрами и сортировкой
 	brands, err := api.BrandService.GetAll(spanCtx)

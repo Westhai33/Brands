@@ -19,7 +19,7 @@ import (
 // @Success 200 {array} dto.Model "Список моделей"
 // @Failure 500 {string} string "Failed to fetch models"
 // @Router /models/all [get]
-func (api *Handler) GetAllModels(ctx *fasthttp.RequestCtx) {
+func (api *ModelHandler) GetAllModels(ctx *fasthttp.RequestCtx) {
 	var spanCtx context.Context
 	spanCtx, ok := ctx.UserValue("traceContext").(context.Context)
 	if !ok {
@@ -27,7 +27,7 @@ func (api *Handler) GetAllModels(ctx *fasthttp.RequestCtx) {
 	}
 	spanCtx, cancel := context.WithTimeout(spanCtx, 5*time.Second)
 	defer cancel()
-	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "Handler.GetAllModels")
+	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "ModelHandler.GetAllModels")
 	defer span.Finish()
 
 	models, err := api.ModelService.GetAll(spanCtx)

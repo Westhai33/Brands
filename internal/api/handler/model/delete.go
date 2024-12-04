@@ -21,7 +21,7 @@ import (
 // @Failure 400 {string} string "Invalid ID format"
 // @Failure 500 {string} string "Failed to delete model"
 // @Router /models/delete/{id} [delete]
-func (api *Handler) DeleteModel(ctx *fasthttp.RequestCtx) {
+func (api *ModelHandler) DeleteModel(ctx *fasthttp.RequestCtx) {
 	var spanCtx context.Context
 	spanCtx, ok := ctx.UserValue("traceContext").(context.Context)
 	if !ok {
@@ -29,7 +29,7 @@ func (api *Handler) DeleteModel(ctx *fasthttp.RequestCtx) {
 	}
 	spanCtx, cancel := context.WithTimeout(spanCtx, 5*time.Second)
 	defer cancel()
-	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "Handler.DeleteModel")
+	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "ModelHandler.DeleteModel")
 	defer span.Finish()
 
 	idStr := ctx.UserValue("id").(string)
@@ -62,7 +62,7 @@ func (api *Handler) DeleteModel(ctx *fasthttp.RequestCtx) {
 // @Failure 400 {string} string "Invalid ID format"
 // @Failure 500 {string} string "Failed to restore model"
 // @Router /models/restore/{id} [post]
-func (api *Handler) RestoreModel(ctx *fasthttp.RequestCtx) {
+func (api *ModelHandler) RestoreModel(ctx *fasthttp.RequestCtx) {
 	var spanCtx context.Context
 	spanCtx, ok := ctx.UserValue("traceContext").(context.Context)
 	if !ok {
@@ -70,7 +70,7 @@ func (api *Handler) RestoreModel(ctx *fasthttp.RequestCtx) {
 	}
 	spanCtx, cancel := context.WithTimeout(spanCtx, 5*time.Second)
 	defer cancel()
-	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "Handler.RestoreModel")
+	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "ModelHandler.RestoreModel")
 	defer span.Finish()
 
 	idStr := ctx.UserValue("id").(string)

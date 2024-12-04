@@ -22,7 +22,7 @@ import (
 // @Failure 400 {string} string "Invalid ID format"
 // @Failure 404 {string} string "Model not found"
 // @Router /models/{id} [get]
-func (api *Handler) GetModelByID(ctx *fasthttp.RequestCtx) {
+func (api *ModelHandler) GetModelByID(ctx *fasthttp.RequestCtx) {
 	var spanCtx context.Context
 	spanCtx, ok := ctx.UserValue("traceContext").(context.Context)
 	if !ok {
@@ -30,7 +30,7 @@ func (api *Handler) GetModelByID(ctx *fasthttp.RequestCtx) {
 	}
 	spanCtx, cancel := context.WithTimeout(spanCtx, 5*time.Second)
 	defer cancel()
-	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "Handler.GetModelByID")
+	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "ModelHandler.GetModelByID")
 	defer span.Finish()
 
 	idStr := ctx.UserValue("id").(string)

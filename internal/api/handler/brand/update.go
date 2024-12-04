@@ -27,7 +27,7 @@ import (
 // @Failure 404 {string} string "Brand not found"
 // @Failure 500 {string} string "Failed to update brand"
 // @Router /brands/update/{id} [put]
-func (api *Handler) UpdateBrand(ctx *fasthttp.RequestCtx) {
+func (api *BrandHandler) UpdateBrand(ctx *fasthttp.RequestCtx) {
 	var spanCtx context.Context
 	spanCtx, ok := ctx.UserValue("traceContext").(context.Context)
 	if !ok {
@@ -35,7 +35,7 @@ func (api *Handler) UpdateBrand(ctx *fasthttp.RequestCtx) {
 	}
 	spanCtx, cancel := context.WithTimeout(spanCtx, 5*time.Second)
 	defer cancel()
-	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "Handler.UpdateBrand")
+	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "BrandHandler.UpdateBrand")
 	defer span.Finish()
 
 	idStr := ctx.UserValue("id").(string)

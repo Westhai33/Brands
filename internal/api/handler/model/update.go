@@ -26,7 +26,7 @@ import (
 // @Failure 404 {string} string "Model not found"
 // @Failure 500 {string} string "Failed to update model"
 // @Router /models/update/{id} [put]
-func (api *Handler) UpdateModel(ctx *fasthttp.RequestCtx) {
+func (api *ModelHandler) UpdateModel(ctx *fasthttp.RequestCtx) {
 	var spanCtx context.Context
 	spanCtx, ok := ctx.UserValue("traceContext").(context.Context)
 	if !ok {
@@ -34,7 +34,7 @@ func (api *Handler) UpdateModel(ctx *fasthttp.RequestCtx) {
 	}
 	spanCtx, cancel := context.WithTimeout(spanCtx, 5*time.Second)
 	defer cancel()
-	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "Handler.UpdateModel")
+	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "ModelHandler.UpdateModel")
 	defer span.Finish()
 
 	idStr := ctx.UserValue("id").(string)

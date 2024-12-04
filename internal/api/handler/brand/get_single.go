@@ -26,7 +26,7 @@ import (
 // @Failure 400 {string} string "Invalid ID format"
 // @Failure 404 {string} string "Brand not found"
 // @Router /brands/{id} [get]
-func (api *Handler) GetBrandByID(ctx *fasthttp.RequestCtx) {
+func (api *BrandHandler) GetBrandByID(ctx *fasthttp.RequestCtx) {
 	var spanCtx context.Context
 	spanCtx, ok := ctx.UserValue("traceContext").(context.Context)
 	if !ok {
@@ -34,7 +34,7 @@ func (api *Handler) GetBrandByID(ctx *fasthttp.RequestCtx) {
 	}
 	spanCtx, cancel := context.WithTimeout(spanCtx, 5*time.Second)
 	defer cancel()
-	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "Handler.GetBrandByID")
+	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "BrandHandler.GetBrandByID")
 	defer span.Finish()
 
 	idStr := ctx.UserValue("id").(string)

@@ -45,6 +45,12 @@ func (api *ModelHandler) DeleteModel(ctx *fasthttp.RequestCtx) {
 	}
 	err = api.ModelService.SoftDelete(spanCtx, id)
 	if err != nil {
+		span.SetTag("error", true)
+		span.LogFields(
+			log.String("event", "delete_model_error"),
+			log.Error(err),
+			log.String("model.id", id.String()),
+		)
 		ctx.Response.SetStatusCode(http.StatusInternalServerError)
 		ctx.Response.SetBodyString(fmt.Sprintf("Failed to delete model: %v", err))
 		return
@@ -60,7 +66,6 @@ func (api *ModelHandler) DeleteModel(ctx *fasthttp.RequestCtx) {
 // @Tags models
 // @Accept json
 // @Produce json
-// @Param id path string true "ID модели (UUIDv7)"
 // @Param id path string true "ID модели (UUIDv7)"
 // @Success 200 {string} string "Model restored successfully"
 // @Failure 400 {string} string "Invalid ID format"
@@ -91,6 +96,12 @@ func (api *ModelHandler) RestoreModel(ctx *fasthttp.RequestCtx) {
 
 	err = api.ModelService.Restore(spanCtx, id)
 	if err != nil {
+		span.SetTag("error", true)
+		span.LogFields(
+			log.String("event", "restore_model_error"),
+			log.Error(err),
+			log.String("model.id", id.String()),
+		)
 		ctx.Response.SetStatusCode(http.StatusInternalServerError)
 		ctx.Response.SetBodyString(fmt.Sprintf("Failed to restore model: %v", err))
 		return

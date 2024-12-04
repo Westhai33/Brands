@@ -20,7 +20,7 @@ func (r *BrandRepository) SoftDelete(ctx context.Context, id uuid.UUID) error {
 
 	if err != nil {
 
-		span.LogFields(log.Error(err), log.String("brand_id", id.String()))
+		span.LogFields(log.Error(err))
 		if errors.Is(err, pgx.ErrNoRows) {
 			r.log.Warn().Str("brand_id", id.String()).Msg("Brand not found")
 			return ErrBrandNotFound
@@ -41,7 +41,7 @@ func (r *BrandRepository) Restore(ctx context.Context, id uuid.UUID) error {
 
 	if err != nil {
 
-		span.LogFields(log.Error(err), log.String("brand_id", id.String()))
+		span.LogFields(log.Error(err))
 		if errors.Is(err, pgx.ErrNoRows) {
 			r.log.Warn().Str("brand_id", id.String()).Msg("Brand not found")
 			return ErrBrandNotFound

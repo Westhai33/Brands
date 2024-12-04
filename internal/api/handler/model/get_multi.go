@@ -35,6 +35,7 @@ func (api *ModelHandler) GetAllModels(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	// Преобразуем список моделей в JSON
 	data, err := json.Marshal(models)
 	if err != nil {
 		ctx.Response.SetStatusCode(http.StatusInternalServerError)

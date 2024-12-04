@@ -24,7 +24,6 @@ func (r *BrandRepository) GetAll(ctx context.Context) ([]dto.Brand, error) {
 
 	rows, err := r.pool.Query(ctx, query)
 	if err != nil {
-
 		span.LogFields(log.Error(err))
 		r.log.Error().
 			Err(err).
@@ -36,7 +35,6 @@ func (r *BrandRepository) GetAll(ctx context.Context) ([]dto.Brand, error) {
 	var brands []dto.Brand
 	brands, err = pgx.CollectRows(rows, pgx.RowToStructByName[dto.Brand])
 	if err != nil {
-
 		span.LogFields(
 			log.Error(err),
 			log.String("event", "collect_rows_error"),

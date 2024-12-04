@@ -24,10 +24,8 @@ func (r *BrandRepository) GetByID(
         FROM brands
         WHERE id = $1 and is_deleted = false
     `
-
 	row, err := r.pool.Query(ctx, query, id)
 	if err != nil {
-
 		span.LogFields(log.Error(err))
 		r.log.Error().Err(err).Str("brand_id", id.String()).Msg("Failed to fetch brand by ID")
 		return nil, fmt.Errorf("unable to get brand by id: %w", err)
@@ -36,9 +34,7 @@ func (r *BrandRepository) GetByID(
 	var brands []dto.Brand
 	brands, err = pgx.CollectRows(row, pgx.RowToStructByName[dto.Brand])
 	if err != nil {
-
 		span.LogFields(log.Error(err))
-
 		r.log.Error().Err(err).Str("brand_id", id.String()).Msg("Failed to collect rows")
 		return nil, fmt.Errorf("unable to collect rows: %w", err)
 	}
@@ -50,9 +46,7 @@ func (r *BrandRepository) GetByID(
 
 	if len(brands) > 1 {
 		err = fmt.Errorf("multiple brands found with id %s", id.String())
-
 		span.LogFields(log.Error(err))
-
 		r.log.Error().Str("brand_id", id.String()).Msg("Multiple brands found with the same ID")
 		return nil, err
 	}

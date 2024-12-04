@@ -14,10 +14,6 @@ import (
 	"net/http"
 )
 
-type CreateModelResponse struct {
-	ID uuid.UUID `json:"id"`
-}
-
 // CreateModel godoc
 // @Summary Создание новой модели
 // @Description Эндпоинт для создания новой модели
@@ -25,7 +21,7 @@ type CreateModelResponse struct {
 // @Accept json
 // @Produce json
 // @Param model body dto.Model true "Данные новой модели"
-// @Success 200 {object} CreateModelResponse "Model created successfully"
+// @Success 200 {string} string "Model created successfully"
 // @Failure 400 {string} string "Invalid request body"
 // @Failure 500 {string} string "Failed to create model"
 // @Router /models/create [post]
@@ -52,7 +48,8 @@ func (api *ModelHandler) CreateModel(ctx *fasthttp.RequestCtx) {
 		span.SetTag("error", true)
 		span.LogFields(
 			log.String("event", "new_uuid_error"),
-			log.String("error", err.Error()),
+			log.Error(err),
+			log.Object("model", model),
 		)
 		zerohook.Logger.Error().Err(err).Send()
 		ctx.Response.SetStatusCode(http.StatusInternalServerError)
@@ -61,28 +58,16 @@ func (api *ModelHandler) CreateModel(ctx *fasthttp.RequestCtx) {
 
 	err = api.ModelService.Create(spanCtx, &model)
 	if err != nil {
+		span.LogFields(
+			log.String("event", "create_model_error"),
+			log.Object("model", model),
+			log.Error(err),
+		)
 		ctx.Response.SetStatusCode(http.StatusInternalServerError)
 		ctx.Response.SetBodyString(fmt.Sprintf("Failed to create model: %v", err))
 		return
 	}
 
-	data, err := json.Marshal(
-		CreateModelResponse{
-			ID: model.ID,
-		},
-	)
-	if err != nil {
-		span.SetTag("error", true)
-		span.LogFields(
-			log.String("event", "marshal_response_error"),
-			log.String("error", err.Error()),
-		)
-		ctx.Response.SetStatusCode(http.StatusInternalServerError)
-		ctx.Response.SetBodyString("Failed to marshal response")
-		return
-	}
-
 	ctx.Response.SetStatusCode(http.StatusOK)
 	ctx.Response.SetBodyString(fmt.Sprintf("Model created successfully with ID: %d", model.ID))
-	ctx.Response.SetBody(data)
 }

@@ -62,11 +62,7 @@ func (r *ModelRepository) Update(ctx context.Context, model *dto.Model) error {
 	}
 	_, err = r.pool.Exec(ctx, query, args)
 	if err != nil {
-
-		span.LogFields(
-			log.Error(err),
-			log.Object("model", model),
-		)
+		span.LogFields(log.Error(err))
 		r.log.Error().Err(err).Interface("model", model).Msg("Failed to update model")
 		return err
 	}

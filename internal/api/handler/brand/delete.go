@@ -1,10 +1,10 @@
 package brand
 
 import (
+	"Brands/internal/api/handler"
 	"context"
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	brandrepo "Brands/internal/repository/brand"
@@ -20,7 +20,7 @@ import (
 // @Tags brand
 // @Accept json
 // @Produce json
-// @Param id path int true "ID бренда"
+// @Param id path string true "ID бренда"
 // @Success 200 {string} string "Brand soft-deleted successfully"
 // @Failure 400 {string} string "Invalid ID format"
 // @Failure 500 {string} string "Failed to delete brand"
@@ -35,15 +35,15 @@ func (api *BrandHandler) DeleteBrand(ctx *fasthttp.RequestCtx) {
 	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "BrandHandler.DeleteBrand")
 	defer span.Finish()
 
-	idStr := ctx.UserValue("id").(string)
-	id, err := strconv.ParseInt(idStr, 10, 64)
+	// Извлечение и парсинг UUID из пути запроса
+	id, err := handler.ExtractUUIDFromPath(ctx, "id")
 	if err != nil {
-
+		span.SetTag("error", true)
 		span.LogFields(
-			log.String("event", "decode_error"),
-			log.String("error", err.Error()),
+			log.String("event", "invalid_id"),
+			log.Error(err),
 		)
-		ctx.Response.SetStatusCode(http.StatusBadRequest)
+		ctx.SetStatusCode(http.StatusBadRequest)
 		ctx.Response.SetBodyString("Invalid ID format")
 		return
 	}
@@ -54,7 +54,7 @@ func (api *BrandHandler) DeleteBrand(ctx *fasthttp.RequestCtx) {
 		if errors.Is(err, brandrepo.ErrBrandNotFound) {
 			span.LogFields(
 				log.String("event", "brand_not_found"),
-				log.Int64("brand.id", id),
+				log.String("brand.id", id.String()),
 			)
 			ctx.Response.SetStatusCode(http.StatusNotFound)
 			ctx.Response.SetBodyString(fmt.Sprintf("Brand not found with ID: %d", id))
@@ -62,7 +62,7 @@ func (api *BrandHandler) DeleteBrand(ctx *fasthttp.RequestCtx) {
 		}
 		span.LogFields(
 			log.String("event", "delete_brand_error"),
-			log.String("error", err.Error()),
+			log.Error(err),
 		)
 		ctx.Response.SetStatusCode(http.StatusInternalServerError)
 		ctx.Response.SetBodyString(fmt.Sprintf("Failed to delete brand: %v", err))
@@ -79,7 +79,7 @@ func (api *BrandHandler) DeleteBrand(ctx *fasthttp.RequestCtx) {
 // @Tags brand
 // @Accept json
 // @Produce json
-// @Param id path int true "ID бренда"
+// @Param id path string true "ID бренда"
 // @Success 200 {string} string "Brand restored successfully"
 // @Failure 400 {string} string "Invalid ID format"
 // @Failure 500 {string} string "Failed to restore brand"
@@ -90,26 +90,25 @@ func (api *BrandHandler) RestoreBrand(ctx *fasthttp.RequestCtx) {
 	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "BrandHandler.RestoreBrand")
 	defer span.Finish()
 
-	idStr := ctx.UserValue("id").(string)
-	id, err := strconv.ParseInt(idStr, 10, 64)
+	// Извлечение и парсинг UUID из пути запроса
+	id, err := handler.ExtractUUIDFromPath(ctx, "id")
 	if err != nil {
-
+		span.SetTag("error", true)
 		span.LogFields(
-			log.String("event", "decode_error"),
-			log.String("error", err.Error()),
+			log.String("event", "invalid_id"),
+			log.Error(err),
 		)
-		ctx.Response.SetStatusCode(http.StatusBadRequest)
+		ctx.SetStatusCode(http.StatusBadRequest)
 		ctx.Response.SetBodyString("Invalid ID format")
 		return
 	}
 
 	err = api.BrandService.Restore(spanCtx, id)
 	if err != nil {
-
 		if errors.Is(err, brandrepo.ErrBrandNotFound) {
 			span.LogFields(
 				log.String("event", "brand_not_found"),
-				log.Int64("brand.id", id),
+				log.String("brand.id", id.String()),
 			)
 			ctx.Response.SetStatusCode(http.StatusNotFound)
 			ctx.Response.SetBodyString(fmt.Sprintf("Brand not found with ID: %d", id))
@@ -117,7 +116,8 @@ func (api *BrandHandler) RestoreBrand(ctx *fasthttp.RequestCtx) {
 		}
 		span.LogFields(
 			log.String("event", "restore_brand_error"),
-			log.String("error", err.Error()),
+			log.Error(err),
+			log.String("brand.id", id.String()),
 		)
 		ctx.Response.SetStatusCode(http.StatusInternalServerError)
 		ctx.Response.SetBodyString(fmt.Sprintf("Failed to restore brand: %v", err))

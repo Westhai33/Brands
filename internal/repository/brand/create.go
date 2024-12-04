@@ -38,8 +38,7 @@ func (r *BrandRepository) Create(
 	}
 	_, err := r.pool.Exec(ctx, query, args)
 	if err != nil {
-
-		span.LogFields(log.Error(err), log.Object("brand", brand))
+		span.LogFields(log.Error(err))
 		r.log.Error().Interface("brand", brand).Err(err).Msg("Failed to create brand")
 		return fmt.Errorf("unable to create brand: %w", err)
 	}

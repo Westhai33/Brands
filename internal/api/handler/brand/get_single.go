@@ -1,6 +1,7 @@
 package brand
 
 import (
+	"Brands/internal/api/handler"
 	brandrepo "Brands/internal/repository/brand"
 	"context"
 	"encoding/json"
@@ -10,7 +11,6 @@ import (
 	"github.com/opentracing/opentracing-go/log"
 	"github.com/valyala/fasthttp"
 	"net/http"
-	"strconv"
 )
 
 // GetBrandByID godoc
@@ -19,7 +19,7 @@ import (
 // @Tags brand
 // @Accept json
 // @Produce json
-// @Param id path int true "ID бренда"
+// @Param id path string true "ID бренда"
 // @Success 200 {object} dto.Brand "Бренд найден"
 // @Failure 400 {string} string "Invalid ID format"
 // @Failure 404 {string} string "Brand not found"
@@ -30,30 +30,28 @@ func (api *BrandHandler) GetBrandByID(ctx *fasthttp.RequestCtx) {
 	if !ok {
 		spanCtx = ctx
 	}
-
 	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "BrandHandler.GetBrandByID")
 	defer span.Finish()
 
-	idStr := ctx.UserValue("id").(string)
-	id, err := strconv.ParseInt(idStr, 10, 64)
+	// Извлечение и парсинг UUID из пути запроса
+	id, err := handler.ExtractUUIDFromPath(ctx, "id")
 	if err != nil {
-
+		span.SetTag("error", true)
 		span.LogFields(
-			log.String("event", "decode_error"),
-			log.String("error", err.Error()),
+			log.String("event", "invalid_id"),
+			log.Error(err),
 		)
-		ctx.Response.SetStatusCode(http.StatusBadRequest)
+		ctx.SetStatusCode(http.StatusBadRequest)
 		ctx.Response.SetBodyString("Invalid ID format")
 		return
 	}
 
 	brand, err := api.BrandService.GetByID(spanCtx, id)
 	if err != nil {
-
 		if errors.Is(err, brandrepo.ErrBrandNotFound) {
 			span.LogFields(
 				log.String("event", "brand_not_found"),
-				log.Int64("brand.id", id),
+				log.String("brand.id", id.String()),
 			)
 			ctx.Response.SetStatusCode(http.StatusNotFound)
 			ctx.Response.SetBodyString(fmt.Sprintf("Brand not found with ID: %d", id))
@@ -61,7 +59,8 @@ func (api *BrandHandler) GetBrandByID(ctx *fasthttp.RequestCtx) {
 		}
 		span.LogFields(
 			log.String("event", "get_brand_error"),
-			log.String("error", err.Error()),
+			log.Error(err),
+			log.String("brand.id", id.String()),
 		)
 		ctx.Response.SetStatusCode(http.StatusInternalServerError)
 		ctx.Response.SetBodyString(fmt.Sprintf("Failed to get brand: %v", err))
@@ -70,10 +69,10 @@ func (api *BrandHandler) GetBrandByID(ctx *fasthttp.RequestCtx) {
 
 	data, err := json.Marshal(brand)
 	if err != nil {
-
 		span.LogFields(
 			log.String("event", "json_marshal_error"),
-			log.String("error", err.Error()),
+			log.Error(err),
+			log.Object("brand", brand),
 		)
 		ctx.Response.SetStatusCode(http.StatusInternalServerError)
 		ctx.Response.SetBodyString(fmt.Sprintf("Failed to marshal brand data: %v", err))

@@ -40,7 +40,7 @@ func (api *BrandHandler) UpdateBrand(ctx *fasthttp.RequestCtx) {
 	if err != nil {
 		span.LogFields(
 			log.String("event", "decode_error"),
-			log.String("error", err.Error()),
+			log.Error(err),
 		)
 		ctx.Response.SetStatusCode(http.StatusBadRequest)
 		ctx.Response.SetBodyString(fmt.Sprintf("Failed to decode request body: %v", err))
@@ -56,10 +56,10 @@ func (api *BrandHandler) UpdateBrand(ctx *fasthttp.RequestCtx) {
 
 	err = api.BrandService.Update(spanCtx, &brand)
 	if err != nil {
-
 		span.LogFields(
 			log.String("event", "update_brand_error"),
-			log.String("error", err.Error()),
+			log.Error(err),
+			log.Object("brand", brand),
 		)
 		ctx.Response.SetStatusCode(http.StatusInternalServerError)
 		ctx.Response.SetBodyString(fmt.Sprintf("Failed to update brand: %v", err))

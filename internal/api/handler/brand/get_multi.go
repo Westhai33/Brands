@@ -25,16 +25,14 @@ func (api *BrandHandler) GetAllBrands(ctx *fasthttp.RequestCtx) {
 	if !ok {
 		spanCtx = ctx
 	}
-
 	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "BrandHandler.GetAllBrands")
 
 	// Вызов метода GetAll из сервиса с фильтрами и сортировкой
 	brands, err := api.BrandService.GetAll(spanCtx)
 	if err != nil {
-
 		span.LogFields(
 			log.String("event", "failed_to_fetch_brands"),
-			log.String("error", err.Error()),
+			log.Error(err),
 		)
 		ctx.Response.SetStatusCode(http.StatusInternalServerError)
 		ctx.Response.SetBodyString(fmt.Sprintf("Failed to fetch brand: %v", err))
@@ -44,17 +42,15 @@ func (api *BrandHandler) GetAllBrands(ctx *fasthttp.RequestCtx) {
 	// Преобразуем список брендов в JSON
 	data, err := json.Marshal(brands)
 	if err != nil {
-
 		span.LogFields(
 			log.String("event", "failed_to_marshal_brands"),
-			log.String("error", err.Error()),
+			log.Object("brand", brands),
+			log.Error(err),
 		)
 		ctx.Response.SetStatusCode(http.StatusInternalServerError)
 		ctx.Response.SetBodyString(fmt.Sprintf("Failed to marshal brand data: %v", err))
 		return
 	}
-
-	// Отправляем список брендов в ответ
 	ctx.Response.SetStatusCode(http.StatusOK)
 	ctx.Response.SetBody(data)
 }

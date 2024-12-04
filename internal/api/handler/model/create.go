@@ -2,14 +2,16 @@ package model
 
 import (
 	"Brands/internal/dto"
+	"Brands/pkg/zerohook"
 	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/log"
 	"github.com/valyala/fasthttp"
 	"net/http"
-	"time"
 )
 
 // CreateModel godoc
@@ -29,8 +31,7 @@ func (api *ModelHandler) CreateModel(ctx *fasthttp.RequestCtx) {
 	if !ok {
 		spanCtx = ctx
 	}
-	spanCtx, cancel := context.WithTimeout(spanCtx, 5*time.Second)
-	defer cancel()
+
 	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "ModelHandler.CreateModel")
 	defer span.Finish()
 
@@ -38,18 +39,37 @@ func (api *ModelHandler) CreateModel(ctx *fasthttp.RequestCtx) {
 	var model dto.Model
 	err := decoder.Decode(&model)
 	if err != nil {
+		span.SetTag("error", true)
 		ctx.Response.SetStatusCode(http.StatusBadRequest)
 		ctx.Response.SetBodyString(fmt.Sprintf("Failed to decode request body: %v", err))
 		return
 	}
-
-	modelID, err := api.ModelService.Create(spanCtx, &model)
+	model.ID, err = uuid.NewV7()
 	if err != nil {
+		span.SetTag("error", true)
+		span.LogFields(
+			log.String("event", "new_uuid_error"),
+			log.Error(err),
+			log.Object("model", model),
+		)
+		zerohook.Logger.Error().Err(err).Send()
+		ctx.Response.SetStatusCode(http.StatusInternalServerError)
+		return
+	}
+
+	err = api.ModelService.Create(spanCtx, &model)
+	if err != nil {
+		span.SetTag("error", true)
+		span.LogFields(
+			log.String("event", "create_model_error"),
+			log.Object("model", model),
+			log.Error(err),
+		)
 		ctx.Response.SetStatusCode(http.StatusInternalServerError)
 		ctx.Response.SetBodyString(fmt.Sprintf("Failed to create model: %v", err))
 		return
 	}
 
 	ctx.Response.SetStatusCode(http.StatusOK)
-	ctx.Response.SetBodyString(fmt.Sprintf("Model created successfully with ID: %d", modelID))
+	ctx.Response.SetBodyString(fmt.Sprintf("Model created successfully with ID: %s", model.ID))
 }

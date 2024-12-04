@@ -35,7 +35,8 @@ tags
 *.log
 godepgraph.png
 cobra.test
-.dev.env
+.env
+
 bin
 vendor
 vendor-proto
@@ -45,3 +46,4 @@ coverage.*
 .idea/
 *.iml
 .idea
+

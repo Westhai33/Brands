@@ -5,13 +5,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/log"
 )
 
 // GetByID получает модель по ID
-func (r *ModelRepository) GetByID(ctx context.Context, id int64) (*dto.Model, error) {
+func (r *ModelRepository) GetByID(
+	ctx context.Context,
+	id uuid.UUID,
+) (*dto.Model, error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "ModelRepository.GetByID")
 	defer span.Finish()
 
@@ -19,6 +23,7 @@ func (r *ModelRepository) GetByID(ctx context.Context, id int64) (*dto.Model, er
 		SELECT id, brand_id, name, release_date, is_upcoming, is_limited, is_deleted, created_at, updated_at
 		FROM models WHERE id = $1 AND is_deleted = false`
 
+	// TODO: change to pgx.CollectRows
 	model := dto.Model{}
 	err := r.pool.QueryRow(ctx, query, id).Scan(
 		&model.ID,
@@ -31,17 +36,15 @@ func (r *ModelRepository) GetByID(ctx context.Context, id int64) (*dto.Model, er
 		&model.CreatedAt,
 		&model.UpdatedAt,
 	)
-
 	if err != nil {
-		span.SetTag("error", true)
 		span.LogFields(log.Error(err))
 
 		if errors.Is(err, pgx.ErrNoRows) {
-			r.log.Warn().Int64("model_id", id).Msg("Model not found")
+			r.log.Warn().Str("model_id", id.String()).Msg("Model not found")
 			return nil, ErrModelNotFound
 		}
 
-		r.log.Error().Err(err).Int64("model_id", id).Msg("Failed to fetch model by ID")
+		r.log.Error().Err(err).Str("model_id", id.String()).Msg("Failed to fetch model by ID")
 		return nil, fmt.Errorf("failed to fetch model by ID: %w", err)
 	}
 

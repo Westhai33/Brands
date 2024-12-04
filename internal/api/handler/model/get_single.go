@@ -1,14 +1,16 @@
 package model
 
 import (
+	"Brands/internal/api/handler"
+	modelrepo "Brands/internal/repository/model"
 	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/log"
+	"github.com/pkg/errors"
 	"github.com/valyala/fasthttp"
 	"net/http"
-	"strconv"
-	"time"
 )
 
 // GetModelByID godoc
@@ -17,7 +19,7 @@ import (
 // @Tags models
 // @Accept json
 // @Produce json
-// @Param id path int true "ID модели"
+// @Param id path string true "ID модели (UUIDv7)"
 // @Success 200 {object} dto.Model "Модель найдена"
 // @Failure 400 {string} string "Invalid ID format"
 // @Failure 404 {string} string "Model not found"
@@ -28,21 +30,40 @@ func (api *ModelHandler) GetModelByID(ctx *fasthttp.RequestCtx) {
 	if !ok {
 		spanCtx = ctx
 	}
-	spanCtx, cancel := context.WithTimeout(spanCtx, 5*time.Second)
-	defer cancel()
+
 	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "ModelHandler.GetModelByID")
 	defer span.Finish()
 
-	idStr := ctx.UserValue("id").(string)
-	id, err := strconv.ParseInt(idStr, 10, 64)
+	// Извлечение и парсинг UUID из пути запроса
+	id, err := handler.ExtractUUIDFromPath(ctx, "id")
 	if err != nil {
-		ctx.Response.SetStatusCode(http.StatusBadRequest)
+		span.SetTag("error", true)
+		span.LogFields(
+			log.String("event", "invalid_id"),
+			log.Error(err),
+		)
+		ctx.SetStatusCode(http.StatusBadRequest)
 		ctx.Response.SetBodyString("Invalid ID format")
 		return
 	}
 
 	model, err := api.ModelService.GetByID(spanCtx, id)
 	if err != nil {
+		span.SetTag("error", true)
+		if errors.Is(err, modelrepo.ErrModelNotFound) {
+			span.LogFields(
+				log.String("event", "model_not_found"),
+				log.String("model.id", id.String()),
+			)
+			ctx.Response.SetStatusCode(http.StatusNotFound)
+			ctx.Response.SetBodyString(fmt.Sprintf("Model not found with ID: %s", id))
+			return
+		}
+		span.LogFields(
+			log.String("event", "get_model_error"),
+			log.Error(err),
+			log.String("model.id", id.String()),
+		)
 		ctx.Response.SetStatusCode(http.StatusNotFound)
 		ctx.Response.SetBodyString(fmt.Sprintf("Model not found: %v", err))
 		return
@@ -50,6 +71,12 @@ func (api *ModelHandler) GetModelByID(ctx *fasthttp.RequestCtx) {
 
 	data, err := json.Marshal(model)
 	if err != nil {
+		span.SetTag("error", true)
+		span.LogFields(
+			log.String("event", "json_marshal_error"),
+			log.Error(err),
+			log.Object("model", model),
+		)
 		ctx.Response.SetStatusCode(http.StatusInternalServerError)
 		ctx.Response.SetBodyString(fmt.Sprintf("Failed to marshal model data: %v", err))
 		return

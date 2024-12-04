@@ -6,10 +6,10 @@ import (
 )
 
 type ModelHandler struct {
-	ModelService model.ModelService
+	ModelService *model.ModelService
 }
 
-func New(modelService model.ModelService) *ModelHandler {
+func New(modelService *model.ModelService) *ModelHandler {
 	return &ModelHandler{
 		ModelService: modelService,
 	}

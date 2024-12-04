@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE TABLE brands (
-                        id BIGSERIAL PRIMARY KEY,
+                        id uuid NOT NULL PRIMARY KEY,
                         name VARCHAR(255) NOT NULL,
                         link VARCHAR(255),
                         description TEXT,

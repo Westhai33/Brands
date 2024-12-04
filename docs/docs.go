@@ -40,13 +40,43 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Фильтрация по полю",
-                        "name": "filter",
+                        "description": "Фильтр по имени бренда",
+                        "name": "name",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Сортировка по полю",
+                        "description": "Фильтр по стране происхождения",
+                        "name": "origin_country",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Фильтр по популярности (целое число)",
+                        "name": "popularity",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Фильтр по признаку премиум-бренда",
+                        "name": "is_premium",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Фильтр по признаку предстоящего бренда",
+                        "name": "is_upcoming",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Фильтр по году основания",
+                        "name": "founded_year",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Поле сортировки (например, 'name', '-popularity')",
                         "name": "sort",
                         "in": "query"
                     }
@@ -62,7 +92,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Failed to fetch brand",
+                        "description": "Failed to fetch brands",
                         "schema": {
                             "type": "string"
                         }
@@ -131,7 +161,7 @@ const docTemplate = `{
                 "summary": "Мягкое удаление бренда",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "ID бренда",
                         "name": "id",
                         "in": "path",
@@ -175,7 +205,7 @@ const docTemplate = `{
                 "summary": "Восстановление мягко удалённого бренда",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "ID бренда",
                         "name": "id",
                         "in": "path",
@@ -219,8 +249,8 @@ const docTemplate = `{
                 "summary": "Обновление бренда по ID",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "ID бренда",
+                        "type": "string",
+                        "description": "ID бренда (UUIDv7)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -278,7 +308,7 @@ const docTemplate = `{
                 "summary": "Получение бренда по ID",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "ID бренда",
                         "name": "id",
                         "in": "path",
@@ -323,20 +353,38 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Фильтрация по полю",
-                        "name": "filter",
+                        "description": "Фильтр по имени модели",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Фильтр по идентификатору бренда",
+                        "name": "brand_id",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Сортировка по полю",
+                        "description": "Фильтр по категории модели",
+                        "name": "category",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Фильтр по популярности (целое число)",
+                        "name": "popularity",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Фильтр по признаку премиум-модели",
+                        "name": "is_premium",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Поле сортировки (например, 'name', '-popularity')",
                         "name": "sort",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Порядок сортировки (asc, desc)",
-                        "name": "order",
                         "in": "query"
                     }
                 ],
@@ -420,8 +468,8 @@ const docTemplate = `{
                 "summary": "Мягкое удаление модели",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "ID модели",
+                        "type": "string",
+                        "description": "ID модели (UUIDv7)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -464,8 +512,8 @@ const docTemplate = `{
                 "summary": "Восстановление мягко удалённой модели",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "ID модели",
+                        "type": "string",
+                        "description": "ID модели (UUIDv7)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -508,8 +556,8 @@ const docTemplate = `{
                 "summary": "Обновление модели по ID",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "ID модели",
+                        "type": "string",
+                        "description": "ID модели (UUIDv7)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -567,8 +615,8 @@ const docTemplate = `{
                 "summary": "Получение модели по ID",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "ID модели",
+                        "type": "string",
+                        "description": "ID модели (UUIDv7)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -618,7 +666,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "is_deleted": {
                     "description": "Флаг удаления",
@@ -662,14 +710,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "brand_id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "created_at": {
                     "description": "Время создания",
                     "type": "string"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "is_deleted": {
                     "description": "Флаг удаления",

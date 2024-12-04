@@ -19,16 +19,11 @@ func (r *ModelRepository) GetAll(ctx context.Context) ([]dto.Model, error) {
         WHERE is_deleted = false
         ORDER BY name ASC
     `
-	// Выполняем запрос
 	rows, err := r.pool.Query(ctx, query)
 	if err != nil {
-		span.LogFields(
-			log.Error(err),
-			log.String("query", query),
-		)
+		span.LogFields(log.Error(err))
 		r.log.Error().
 			Err(err).
-			Str("operation", "GetAll").
 			Msg("Failed to execute GetAll query")
 		return nil, fmt.Errorf("error executing query: %w", err)
 	}
@@ -37,7 +32,6 @@ func (r *ModelRepository) GetAll(ctx context.Context) ([]dto.Model, error) {
 	var models []dto.Model
 	models, err = pgx.CollectRows(rows, pgx.RowToStructByName[dto.Model])
 	if err != nil {
-
 		span.LogFields(
 			log.Error(err),
 			log.String("event", "collect_rows_error"),

@@ -41,7 +41,7 @@ func (r *ModelRepository) Create(ctx context.Context, model *dto.Model) error {
 
 	query := `
 		INSERT INTO models (id, brand_id, name, release_date, is_upcoming, is_limited, created_at, updated_at, is_deleted)
-		VALUES (@id, @name, @release_date, @is_upcoming, @is_limited, NOW(), NOW(), false)
+		VALUES (@id, @brand_id, @name, @release_date, @is_upcoming, @is_limited, NOW(), NOW(), false)
 	`
 	args := pgx.NamedArgs{
 		"id":           model.ID,

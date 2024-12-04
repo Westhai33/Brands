@@ -62,9 +62,6 @@ definitions:
       is_upcoming:
         description: Флаг "Скоро"
         type: boolean
-      link:
-        description: Модель на английском
-        type: string
       name:
         description: Название модели
         type: string

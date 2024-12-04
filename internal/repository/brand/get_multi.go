@@ -21,7 +21,6 @@ func (r *BrandRepository) GetAll(ctx context.Context) ([]dto.Brand, error) {
         WHERE is_deleted = false
         ORDER BY name ASC
     `
-
 	rows, err := r.pool.Query(ctx, query)
 	if err != nil {
 		span.LogFields(log.Error(err))

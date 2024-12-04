@@ -23,4 +23,5 @@ func (api *ModelHandler) SetupRoutes(r *router.Router) {
 	group.DELETE("/delete/{id}", api.DeleteModel)
 	group.POST("/restore/{id}", api.RestoreModel)
 	group.GET("/all", api.GetAllModels)
+	group.GET("/filter", api.ModelsFilter)
 }

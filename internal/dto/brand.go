@@ -23,3 +23,8 @@ type Brand struct {
 	CreatedAt time.Time `json:"created_at"` // Время создания
 	UpdatedAt time.Time `json:"updated_at"` // Время обновления
 }
+
+type BrandWithModels struct {
+	Brand  `json:"brand"`
+	Models []Model `json:"models"` // Связанные модели бренда
+}

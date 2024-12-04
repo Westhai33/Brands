@@ -415,6 +415,70 @@ const docTemplate = `{
                 }
             }
         },
+        "/models/filter": {
+            "get": {
+                "description": "Возвращает все модели с возможностью фильтрации и сортировки",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "models"
+                ],
+                "summary": "Фильтрация моделей",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Фильтр по имени модели",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по идентификатору бренда",
+                        "name": "brand_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Фильтр по популярности (целое число)",
+                        "name": "popularity",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Фильтр по признаку премиум-модели",
+                        "name": "is_premium",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Поле сортировки (например, 'name', '-popularity')",
+                        "name": "sort",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список моделей",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.Model"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to fetch models",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/models/restore/{id}": {
             "post": {
                 "description": "Восстановление модели, которая была удалена ранее",
@@ -648,10 +712,6 @@ const docTemplate = `{
                 "is_upcoming": {
                     "description": "Флаг \"Скоро\"",
                     "type": "boolean"
-                },
-                "link": {
-                    "description": "Модель на английском",
-                    "type": "string"
                 },
                 "name": {
                     "description": "Название модели",

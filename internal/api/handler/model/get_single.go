@@ -1,7 +1,7 @@
 package model
 
 import (
-	"Brands/internal/api/handler"
+	"Brands/internal/api/handler/utils"
 	modelrepo "Brands/internal/repository/model"
 	"context"
 	"encoding/json"
@@ -35,7 +35,7 @@ func (api *ModelHandler) GetModelByID(ctx *fasthttp.RequestCtx) {
 	defer span.Finish()
 
 	// Извлечение и парсинг UUID из пути запроса
-	id, err := handler.ExtractUUIDFromPath(ctx, "id")
+	id, err := utils.ExtractUUIDFromPath(ctx, "id")
 	if err != nil {
 		span.SetTag("error", true)
 		span.LogFields(

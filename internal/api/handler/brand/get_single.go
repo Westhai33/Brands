@@ -1,7 +1,7 @@
 package brand
 
 import (
-	"Brands/internal/api/handler"
+	"Brands/internal/api/handler/utils"
 	brandrepo "Brands/internal/repository/brand"
 	"context"
 	"encoding/json"
@@ -34,7 +34,7 @@ func (api *BrandHandler) GetBrandByID(ctx *fasthttp.RequestCtx) {
 	defer span.Finish()
 
 	// Извлечение и парсинг UUID из пути запроса
-	id, err := handler.ExtractUUIDFromPath(ctx, "id")
+	id, err := utils.ExtractUUIDFromPath(ctx, "id")
 	if err != nil {
 		span.SetTag("error", true)
 		span.LogFields(

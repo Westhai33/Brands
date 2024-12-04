@@ -372,6 +372,48 @@ paths:
       summary: Мягкое удаление модели
       tags:
       - models
+  /models/filter:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает все модели с возможностью фильтрации и сортировки
+      parameters:
+      - description: Фильтр по имени модели
+        in: query
+        name: name
+        type: string
+      - description: Фильтр по идентификатору бренда
+        in: query
+        name: brand_id
+        type: string
+      - description: Фильтр по популярности (целое число)
+        in: query
+        name: popularity
+        type: integer
+      - description: Фильтр по признаку премиум-модели
+        in: query
+        name: is_premium
+        type: boolean
+      - description: Поле сортировки (например, 'name', '-popularity')
+        in: query
+        name: sort
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список моделей
+          schema:
+            items:
+              $ref: '#/definitions/dto.Model'
+            type: array
+        "500":
+          description: Failed to fetch models
+          schema:
+            type: string
+      summary: Фильтрация моделей
+      tags:
+      - models
   /models/restore/{id}:
     post:
       consumes:

@@ -1,7 +1,7 @@
 package brand
 
 import (
-	"Brands/internal/api/handler"
+	"Brands/internal/api/handler/utils"
 	"context"
 	"fmt"
 	"net/http"
@@ -36,7 +36,7 @@ func (api *BrandHandler) DeleteBrand(ctx *fasthttp.RequestCtx) {
 	defer span.Finish()
 
 	// Извлечение и парсинг UUID из пути запроса
-	id, err := handler.ExtractUUIDFromPath(ctx, "id")
+	id, err := utils.ExtractUUIDFromPath(ctx, "id")
 	if err != nil {
 		span.SetTag("error", true)
 		span.LogFields(
@@ -91,7 +91,7 @@ func (api *BrandHandler) RestoreBrand(ctx *fasthttp.RequestCtx) {
 	defer span.Finish()
 
 	// Извлечение и парсинг UUID из пути запроса
-	id, err := handler.ExtractUUIDFromPath(ctx, "id")
+	id, err := utils.ExtractUUIDFromPath(ctx, "id")
 	if err != nil {
 		span.SetTag("error", true)
 		span.LogFields(

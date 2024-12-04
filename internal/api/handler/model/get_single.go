@@ -56,7 +56,7 @@ func (api *ModelHandler) GetModelByID(ctx *fasthttp.RequestCtx) {
 				log.String("model.id", id.String()),
 			)
 			ctx.Response.SetStatusCode(http.StatusNotFound)
-			ctx.Response.SetBodyString(fmt.Sprintf("Model not found with ID: %d", id))
+			ctx.Response.SetBodyString(fmt.Sprintf("Model not found with ID: %s", id))
 			return
 		}
 		span.LogFields(

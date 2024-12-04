@@ -99,7 +99,7 @@ paths:
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -179,7 +179,7 @@ paths:
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -208,7 +208,7 @@ paths:
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -233,11 +233,6 @@ paths:
       - application/json
       description: Обновление данных бренда по его ID
       parameters:
-      - description: ID бренда
-        in: path
-        name: id
-        required: true
-        type: integer
       - description: Обновлённые данные бренда
         in: body
         name: brand
@@ -272,11 +267,11 @@ paths:
       - application/json
       description: Получение информации о модели по её уникальному ID
       parameters:
-      - description: ID модели
+      - description: ID модели (UUIDv7)
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -352,11 +347,11 @@ paths:
       - application/json
       description: Выполняет мягкое удаление модели по её ID
       parameters:
-      - description: ID модели
+      - description: ID модели (UUIDv7)
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -381,11 +376,11 @@ paths:
       - application/json
       description: Восстановление модели, которая была удалена ранее
       parameters:
-      - description: ID модели
+      - description: ID модели (UUIDv7)
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -410,11 +405,6 @@ paths:
       - application/json
       description: Обновление данных модели по её ID
       parameters:
-      - description: ID модели
-        in: path
-        name: id
-        required: true
-        type: integer
       - description: Обновлённые данные модели
         in: body
         name: model

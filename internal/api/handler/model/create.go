@@ -71,5 +71,5 @@ func (api *ModelHandler) CreateModel(ctx *fasthttp.RequestCtx) {
 	}
 
 	ctx.Response.SetStatusCode(http.StatusOK)
-	ctx.Response.SetBodyString(fmt.Sprintf("Model created successfully with ID: %d", model.ID))
+	ctx.Response.SetBodyString(fmt.Sprintf("Model created successfully with ID: %s", model.ID))
 }

@@ -117,7 +117,7 @@ const docTemplate = `{
                 "summary": "Мягкое удаление бренда",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "ID бренда",
                         "name": "id",
                         "in": "path",
@@ -161,7 +161,7 @@ const docTemplate = `{
                 "summary": "Восстановление мягко удалённого бренда",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "ID бренда",
                         "name": "id",
                         "in": "path",
@@ -204,13 +204,6 @@ const docTemplate = `{
                 ],
                 "summary": "Обновление бренда по ID",
                 "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID бренда",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
                     {
                         "description": "Обновлённые данные бренда",
                         "name": "brand",
@@ -264,7 +257,7 @@ const docTemplate = `{
                 "summary": "Получение бренда по ID",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "ID бренда",
                         "name": "id",
                         "in": "path",
@@ -386,8 +379,8 @@ const docTemplate = `{
                 "summary": "Мягкое удаление модели",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "ID модели",
+                        "type": "string",
+                        "description": "ID модели (UUIDv7)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -430,8 +423,8 @@ const docTemplate = `{
                 "summary": "Восстановление мягко удалённой модели",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "ID модели",
+                        "type": "string",
+                        "description": "ID модели (UUIDv7)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -473,13 +466,6 @@ const docTemplate = `{
                 ],
                 "summary": "Обновление модели по ID",
                 "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID модели",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
                     {
                         "description": "Обновлённые данные модели",
                         "name": "model",
@@ -533,8 +519,8 @@ const docTemplate = `{
                 "summary": "Получение модели по ID",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "ID модели",
+                        "type": "string",
+                        "description": "ID модели (UUIDv7)",
                         "name": "id",
                         "in": "path",
                         "required": true

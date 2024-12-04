@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 CREATE TABLE models (
                         id uuid NOT NULL PRIMARY KEY,
-                        brand_id BIGINT NOT NULL,
+                        brand_id uuid NOT NULL,
                         name VARCHAR(255) NOT NULL,
                         release_date DATE,
                         is_upcoming BOOLEAN DEFAULT FALSE,

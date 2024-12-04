@@ -80,5 +80,5 @@ func (api *BrandHandler) CreateBrand(ctx *fasthttp.RequestCtx) {
 		return
 	}
 	ctx.Response.SetStatusCode(http.StatusOK)
-	ctx.Response.SetBodyString(fmt.Sprintf("Brand created successfully with ID: %d", brand.ID))
+	ctx.Response.SetBodyString(fmt.Sprintf("Brand created successfully with ID: %s", brand.ID))
 }

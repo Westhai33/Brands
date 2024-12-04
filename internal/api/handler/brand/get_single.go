@@ -55,7 +55,7 @@ func (api *BrandHandler) GetBrandByID(ctx *fasthttp.RequestCtx) {
 				log.String("brand.id", id.String()),
 			)
 			ctx.Response.SetStatusCode(http.StatusNotFound)
-			ctx.Response.SetBodyString(fmt.Sprintf("Brand not found with ID: %d", id))
+			ctx.Response.SetBodyString(fmt.Sprintf("Brand not found with ID: %s", id))
 			return
 		}
 		span.LogFields(

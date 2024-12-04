@@ -5,10 +5,6 @@
 run:
 	go mod download && go run main.go --config="config/dev.yml"
 
-.PHONY: run-local
-run-local:
-	go mod download && go run main.go --config="config/local.yml"
-
 .PHONY: docker-up
 docker-up:
 	docker-compose -f docker-compose.yml up --build

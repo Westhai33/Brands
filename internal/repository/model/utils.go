@@ -8,7 +8,7 @@ import (
 )
 
 // brandExists проверяет, существует ли бренд с заданным ID
-func (r *Repository) brandExists(ctx context.Context, brandID int64) (bool, error) {
+func (r *ModelRepository) brandExists(ctx context.Context, brandID int64) (bool, error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "ModelRepository.brandExists")
 	defer span.Finish()
 

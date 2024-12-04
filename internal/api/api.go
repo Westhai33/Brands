@@ -15,14 +15,14 @@ import (
 type service struct {
 	r            *router.Router
 	log          zerolog.Logger
-	brandHandler brand.BrandHandler
-	modelHandler model.ModelHandler
+	brandHandler *brand.BrandHandler
+	modelHandler *model.ModelHandler
 }
 
 func NewService(
 	log zerolog.Logger,
-	bh brand.BrandHandler,
-	mh model.ModelHandler,
+	bh *brand.BrandHandler,
+	mh *model.ModelHandler,
 ) (*service, error) {
 	r := router.New()
 

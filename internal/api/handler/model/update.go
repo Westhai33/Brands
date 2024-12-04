@@ -3,11 +3,14 @@ package model
 import (
 	"Brands/internal/dto"
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/opentracing/opentracing-go"
 	"github.com/valyala/fasthttp"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 // UpdateModel godoc
@@ -23,7 +26,17 @@ import (
 // @Failure 404 {string} string "Model not found"
 // @Failure 500 {string} string "Failed to update model"
 // @Router /models/update/{id} [put]
-func (api *Handler) UpdateModel(ctx *fasthttp.RequestCtx) {
+func (api *ModelHandler) UpdateModel(ctx *fasthttp.RequestCtx) {
+	var spanCtx context.Context
+	spanCtx, ok := ctx.UserValue("traceContext").(context.Context)
+	if !ok {
+		spanCtx = ctx
+	}
+	spanCtx, cancel := context.WithTimeout(spanCtx, 5*time.Second)
+	defer cancel()
+	span, spanCtx := opentracing.StartSpanFromContext(spanCtx, "ModelHandler.UpdateModel")
+	defer span.Finish()
+
 	idStr := ctx.UserValue("id").(string)
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
@@ -43,7 +56,7 @@ func (api *Handler) UpdateModel(ctx *fasthttp.RequestCtx) {
 
 	model.ID = id
 
-	err = api.ModelService.Update(ctx, &model)
+	err = api.ModelService.Update(spanCtx, &model)
 	if err != nil {
 		ctx.Response.SetStatusCode(http.StatusInternalServerError)
 		ctx.Response.SetBodyString(fmt.Sprintf("Failed to update model: %v", err))

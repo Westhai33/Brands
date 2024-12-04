@@ -7,11 +7,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/rs/zerolog/pkgerrors"
-
 	"Brands/pkg/yamlenv"
-
 	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/pkgerrors"
 )
 
 var once sync.Once

@@ -9,7 +9,7 @@ import (
 )
 
 // Create создает новый бренд
-func (s *Service) Create(ctx context.Context, brand *dto.Brand) (int64, error) {
+func (s *BrandService) Create(ctx context.Context, brand *dto.Brand) (int64, error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "BrandService.Create")
 	defer span.Finish()
 	s.log.Info().Msg("Starting Create operation")

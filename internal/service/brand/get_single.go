@@ -7,7 +7,7 @@ import (
 )
 
 // GetByID получает бренд по ID
-func (s *Service) GetByID(ctx context.Context, id int64) (*dto.Brand, error) {
+func (s *BrandService) GetByID(ctx context.Context, id int64) (*dto.Brand, error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "BrandService.GetByID")
 	defer span.Finish()
 

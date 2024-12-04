@@ -1,0 +1,19 @@
+log:
+  app: BrandsService
+  level: debug
+  facility: ItemCloud_Brands
+  ci_commit_ref_name: zero
+  origin: dev
+
+postgres:
+  conn: "postgres://admin:pgpwdbrands@brands_postgres:5432/itemcloudbrands?sslmode=disable"
+
+prometheus:
+  port: 8099                        # Порт для экспорта метрик Prometheus
+  metrics_path: "/metrics"            # Путь для экспорта метрик
+  scrape_interval: 15s              # Интервал сбора метрик
+
+jaeger:
+  agent_host: brands_jaeger        # Адрес агента Jaeger
+  agent_port: 6831                 # Порт агента Jaeger
+  service_name: brands             # Имя сервиса для Jaeger

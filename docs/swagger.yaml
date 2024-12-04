@@ -1,0 +1,446 @@
+basePath: /
+definitions:
+  dto.Brand:
+    properties:
+      cover_image_url:
+        description: URL обложки
+        type: string
+      created_at:
+        description: Время создания
+        type: string
+      description:
+        description: Описание/история бренда
+        type: string
+      founded_year:
+        description: Год основания
+        type: integer
+      id:
+        type: string
+      is_deleted:
+        description: Флаг удаления
+        type: boolean
+      is_premium:
+        description: Флаг премиального бренда
+        type: boolean
+      is_upcoming:
+        description: Флаг "Скоро"
+        type: boolean
+      link:
+        description: Бренд на английском
+        type: string
+      logo_url:
+        description: URL логотипа
+        type: string
+      name:
+        description: Название бренда
+        type: string
+      origin_country:
+        description: Страна происхождения
+        type: string
+      popularity:
+        description: Индекс популярности
+        type: integer
+      updated_at:
+        description: Время обновления
+        type: string
+    type: object
+  dto.Model:
+    properties:
+      brand_id:
+        type: string
+      created_at:
+        description: Время создания
+        type: string
+      id:
+        type: string
+      is_deleted:
+        description: Флаг удаления
+        type: boolean
+      is_limited:
+        description: Флаг ограниченного выпуска
+        type: boolean
+      is_upcoming:
+        description: Флаг "Скоро"
+        type: boolean
+      link:
+        description: Модель на английском
+        type: string
+      name:
+        description: Название модели
+        type: string
+      release_date:
+        description: Дата релиза
+        type: string
+      updated_at:
+        description: Время обновления
+        type: string
+    type: object
+host: 127.0.0.1:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: Микро-сервис для работы с брендами и моделями
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Brands API
+  version: "1.0"
+paths:
+  /brands/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Получение информации о бренде по его уникальному ID
+      parameters:
+      - description: ID бренда
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Бренд найден
+          schema:
+            $ref: '#/definitions/dto.Brand'
+        "400":
+          description: Invalid ID format
+          schema:
+            type: string
+        "404":
+          description: Brand not found
+          schema:
+            type: string
+      summary: Получение бренда по ID
+      tags:
+      - brand
+  /brands/all:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает все бренды с возможностью фильтрации и сортировки
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список брендов
+          schema:
+            items:
+              $ref: '#/definitions/dto.Brand'
+            type: array
+        "500":
+          description: Failed to fetch brand
+          schema:
+            type: string
+      summary: Получение всех брендов
+      tags:
+      - brand
+  /brands/create:
+    post:
+      consumes:
+      - application/json
+      description: Эндпоинт для создания нового бренда
+      parameters:
+      - description: Данные нового бренда
+        in: body
+        name: brand
+        required: true
+        schema:
+          $ref: '#/definitions/dto.Brand'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Brand created successfully
+          schema:
+            type: string
+        "400":
+          description: Invalid request body
+          schema:
+            type: string
+        "500":
+          description: Failed to create brand
+          schema:
+            type: string
+      summary: Создание нового бренда
+      tags:
+      - brand
+  /brands/delete/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Выполняет мягкое удаление бренда по его ID
+      parameters:
+      - description: ID бренда
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Brand soft-deleted successfully
+          schema:
+            type: string
+        "400":
+          description: Invalid ID format
+          schema:
+            type: string
+        "500":
+          description: Failed to delete brand
+          schema:
+            type: string
+      summary: Мягкое удаление бренда
+      tags:
+      - brand
+  /brands/restore/{id}:
+    post:
+      consumes:
+      - application/json
+      description: Восстановление бренда, который был удалён ранее (мягкое удаление)
+      parameters:
+      - description: ID бренда
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Brand restored successfully
+          schema:
+            type: string
+        "400":
+          description: Invalid ID format
+          schema:
+            type: string
+        "500":
+          description: Failed to restore brand
+          schema:
+            type: string
+      summary: Восстановление мягко удалённого бренда
+      tags:
+      - brand
+  /brands/update/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Обновление данных бренда по его ID
+      parameters:
+      - description: ID бренда (UUIDv7)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Обновлённые данные бренда
+        in: body
+        name: brand
+        required: true
+        schema:
+          $ref: '#/definitions/dto.Brand'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Brand updated successfully
+          schema:
+            type: string
+        "400":
+          description: Invalid request body
+          schema:
+            type: string
+        "404":
+          description: Brand not found
+          schema:
+            type: string
+        "500":
+          description: Failed to update brand
+          schema:
+            type: string
+      summary: Обновление бренда по ID
+      tags:
+      - brand
+  /models/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Получение информации о модели по её уникальному ID
+      parameters:
+      - description: ID модели (UUIDv7)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Модель найдена
+          schema:
+            $ref: '#/definitions/dto.Model'
+        "400":
+          description: Invalid ID format
+          schema:
+            type: string
+        "404":
+          description: Model not found
+          schema:
+            type: string
+      summary: Получение модели по ID
+      tags:
+      - models
+  /models/all:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает все модели с возможностью фильтрации и сортировки
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список моделей
+          schema:
+            items:
+              $ref: '#/definitions/dto.Model'
+            type: array
+        "500":
+          description: Failed to fetch models
+          schema:
+            type: string
+      summary: Получение всех моделей
+      tags:
+      - models
+  /models/create:
+    post:
+      consumes:
+      - application/json
+      description: Эндпоинт для создания новой модели
+      parameters:
+      - description: Данные новой модели
+        in: body
+        name: model
+        required: true
+        schema:
+          $ref: '#/definitions/dto.Model'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Model created successfully
+          schema:
+            type: string
+        "400":
+          description: Invalid request body
+          schema:
+            type: string
+        "500":
+          description: Failed to create model
+          schema:
+            type: string
+      summary: Создание новой модели
+      tags:
+      - models
+  /models/delete/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Выполняет мягкое удаление модели по её ID
+      parameters:
+      - description: ID модели (UUIDv7)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Model soft-deleted successfully
+          schema:
+            type: string
+        "400":
+          description: Invalid ID format
+          schema:
+            type: string
+        "500":
+          description: Failed to delete model
+          schema:
+            type: string
+      summary: Мягкое удаление модели
+      tags:
+      - models
+  /models/restore/{id}:
+    post:
+      consumes:
+      - application/json
+      description: Восстановление модели, которая была удалена ранее
+      parameters:
+      - description: ID модели (UUIDv7)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Model restored successfully
+          schema:
+            type: string
+        "400":
+          description: Invalid ID format
+          schema:
+            type: string
+        "500":
+          description: Failed to restore model
+          schema:
+            type: string
+      summary: Восстановление мягко удалённой модели
+      tags:
+      - models
+  /models/update/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Обновление данных модели по её ID
+      parameters:
+      - description: ID модели (UUIDv7)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Обновлённые данные модели
+        in: body
+        name: model
+        required: true
+        schema:
+          $ref: '#/definitions/dto.Model'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Model updated successfully
+          schema:
+            type: string
+        "400":
+          description: Invalid request body
+          schema:
+            type: string
+        "404":
+          description: Model not found
+          schema:
+            type: string
+        "500":
+          description: Failed to update model
+          schema:
+            type: string
+      summary: Обновление модели по ID
+      tags:
+      - models
+swagger: "2.0"

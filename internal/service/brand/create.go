@@ -17,7 +17,10 @@ func (s *BrandService) Create(ctx context.Context, brand *dto.Brand) (int64, err
 	if brand.Name == "" {
 		err := fmt.Errorf("name is required")
 		span.SetTag("error", true)
-		span.LogFields(log.String("event", "validation_failed"), log.String("message", err.Error()))
+		span.LogFields(
+			log.String("event", "validation_failed"),
+			log.Error(err),
+		)
 		s.log.Error().Err(err).Msg("Validation failed in Create")
 		return 0, err
 	}

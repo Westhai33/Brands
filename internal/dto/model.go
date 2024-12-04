@@ -1,10 +1,13 @@
 package dto
 
-import "time"
+import (
+	"github.com/google/uuid"
+	"time"
+)
 
 type Model struct {
-	ID          int64     `json:"id"`
-	BrandID     int64     `json:"brand_id"`
+	ID          uuid.UUID `json:"id"`
+	BrandID     uuid.UUID `json:"brand_id"`
 	Name        string    `json:"name"`         // Название модели
 	Link        string    `json:"link"`         // Модель на английском
 	ReleaseDate time.Time `json:"release_date"` // Дата релиза

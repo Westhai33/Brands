@@ -3,6 +3,8 @@ package brand
 import (
 	"context"
 	"fmt"
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 
 	"Brands/internal/dto"
 	"github.com/opentracing/opentracing-go"
@@ -13,29 +15,29 @@ import (
 func (r *BrandRepository) Create(
 	ctx context.Context,
 	brand *dto.Brand,
-) (int64, error) {
+) (uuid.UUID, error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "BrandRepository.Create")
 	defer span.Finish()
 
 	query := `
-		INSERT INTO brands (name, link, description, logo_url, cover_image_url, founded_year, origin_country, popularity, is_premium, is_upcoming, created_at, updated_at, is_deleted)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW(), false)
-		RETURNING id`
+		INSERT INTO brands (id, name, link, description, logo_url, cover_image_url, founded_year, origin_country, popularity, is_premium, is_upcoming, created_at, updated_at, is_deleted)
+		VALUES (@id, @name, @link, @description, @logo_url, @cover_image_url, @founded_year, @origin_country, @popularity, @is_premium, @is_upcoming, NOW(), NOW(), false)
+	`
 
-	err := r.pool.QueryRow(
-		ctx, query,
-		brand.Name,
-		brand.Link,
-		brand.Description,
-		brand.LogoURL,
-		brand.CoverImageURL,
-		brand.FoundedYear,
-		brand.OriginCountry,
-		brand.Popularity,
-		brand.IsPremium,
-		brand.IsUpcoming,
-	).Scan(&brand.ID)
-
+	args := pgx.NamedArgs{
+		"id":              brand.ID,
+		"name":            brand.Name,
+		"link":            brand.Link,
+		"description":     brand.Description,
+		"logo_url":        brand.LogoURL,
+		"cover_image_url": brand.CoverImageURL,
+		"founded_year":    brand.FoundedYear,
+		"origin_country":  brand.OriginCountry,
+		"popularity":      brand.Popularity,
+		"is_premium":      brand.IsPremium,
+		"is_upcoming":     brand.IsUpcoming,
+	}
+	_, err := r.pool.Exec(ctx, query, args)
 	if err != nil {
 		span.SetTag("error", true)
 		span.LogFields(log.Error(err))

@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"fmt"
+	"github.com/jackc/pgx/v5"
 
 	"Brands/internal/dto"
 	"Brands/internal/repository/brand"
@@ -11,16 +12,19 @@ import (
 )
 
 // Create создает новую модель
-func (r *ModelRepository) Create(ctx context.Context, model *dto.Model) (int64, error) {
+func (r *ModelRepository) Create(ctx context.Context, model *dto.Model) error {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "ModelRepository.Create")
 	defer span.Finish()
 
 	exists, err := r.brandExists(ctx, model.BrandID)
 	if err != nil {
 		span.SetTag("error", true)
-		span.LogFields(log.Error(err))
-		r.log.Error().Err(err).Int64("brand_id", model.BrandID).Msg("Failed to check if brand exists")
-		return 0, fmt.Errorf("failed to check brand existence: %w", err)
+		span.LogFields(
+			log.Error(err),
+			log.Object("model", model),
+		)
+		r.log.Error().Err(err).Interface("model", model).Msg("Failed to check if brand exists")
+		return fmt.Errorf("failed to check brand existence: %w", err)
 	}
 	if !exists {
 		err = fmt.Errorf(
@@ -29,29 +33,35 @@ func (r *ModelRepository) Create(ctx context.Context, model *dto.Model) (int64, 
 			brand.ErrBrandNotFound,
 		)
 		span.SetTag("error", true)
-		span.LogFields(log.Error(err))
-		r.log.Warn().Int64("brand_id", model.BrandID).Msg(err.Error())
-		return 0, err
+		span.LogFields(
+			log.Error(err),
+			log.Object("model", model),
+		)
+		r.log.Warn().Interface("model", model).Msg(err.Error())
+		return err
 	}
 
 	query := `
-		INSERT INTO models (brand_id, name, release_date, is_upcoming, is_limited, created_at, updated_at, is_deleted)
-		VALUES ($1, $2, $3, $4, $5, NOW(), NOW(), false)
-		RETURNING id`
-	err = r.pool.QueryRow(ctx, query,
-		model.BrandID,
-		model.Name,
-		model.ReleaseDate,
-		model.IsUpcoming,
-		model.IsLimited,
-	).Scan(&model.ID)
-
-	// Обрабатываем ошибку запроса
+		INSERT INTO models (id, brand_id, name, release_date, is_upcoming, is_limited, created_at, updated_at, is_deleted)
+		VALUES (:id, :name, :release_date, :is_upcoming, :is_limited, NOW(), NOW(), false)
+	`
+	args := pgx.NamedArgs{
+		"id":           model.ID,
+		"brand_id":     model.BrandID,
+		"name":         model.Name,
+		"release_date": model.ReleaseDate,
+		"is_upcoming":  model.IsUpcoming,
+		"is_limited":   model.IsLimited,
+	}
+	_, err = r.pool.Exec(ctx, query, args)
 	if err != nil {
 		span.SetTag("error", true)
-		span.LogFields(log.Error(err))
-		r.log.Error().Err(err).Msg("Failed to create model")
-		return 0, fmt.Errorf("failed to create model: %w", err)
+		span.LogFields(
+			log.Error(err),
+			log.Object("brand", model),
+		)
+		r.log.Error().Interface("model", model).Err(err).Msg("Failed to create model")
+		return fmt.Errorf("failed to create model: %w", err)
 	}
-	return model.ID, nil
+	return nil
 }

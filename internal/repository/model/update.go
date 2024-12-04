@@ -5,6 +5,7 @@ import (
 	"Brands/internal/repository/brand"
 	"context"
 	"fmt"
+	"github.com/jackc/pgx/v5"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/log"
 )
@@ -17,8 +18,11 @@ func (r *ModelRepository) Update(ctx context.Context, model *dto.Model) error {
 	exists, err := r.brandExists(ctx, model.BrandID)
 	if err != nil {
 		span.SetTag("error", true)
-		span.LogFields(log.Error(err))
-		r.log.Error().Err(err).Int64("brand_id", model.BrandID).Msg("Failed to check if brand exists")
+		span.LogFields(
+			log.Error(err),
+			log.Object("model", model),
+		)
+		r.log.Warn().Interface("model", model).Msgf("Failed to check if brand exists: %s", err.Error())
 		return err
 	}
 
@@ -29,28 +33,41 @@ func (r *ModelRepository) Update(ctx context.Context, model *dto.Model) error {
 			brand.ErrBrandNotFound,
 		)
 		span.SetTag("error", true)
-		span.LogFields(log.Error(err))
-		r.log.Warn().Int64("brand_id", model.BrandID).Msg(err.Error())
+		span.LogFields(
+			log.Error(err),
+			log.Object("model", model),
+		)
+		r.log.Warn().Interface("model", model).Msg(err.Error())
 		return err
 	}
 
 	query := `
-		UPDATE models SET brand_id = $2, name = $3, release_date = $4, is_upcoming = $5, 
-		                 is_limited = $6, updated_at = NOW()
-		WHERE id = $1 AND is_deleted = false`
+		UPDATE models 
+		SET brand_id = @brand_id, 
+		    name = @name, 
+		    release_date = @release_date, 
+		    is_upcoming = @is_upcoming, 
+		    is_limited = @is_limited, 
+		    updated_at = NOW()
+		WHERE id = @id AND is_deleted = false
+	`
 
-	_, err = r.pool.Exec(ctx, query,
-		model.ID,
-		model.BrandID,
-		model.Name,
-		model.ReleaseDate,
-		model.IsUpcoming,
-		model.IsLimited,
-	)
+	args := pgx.NamedArgs{
+		"id":           model.ID,
+		"brand_id":     model.BrandID,
+		"name":         model.Name,
+		"release_date": model.ReleaseDate,
+		"is_upcoming":  model.IsUpcoming,
+		"is_limited":   model.IsLimited,
+	}
+	_, err = r.pool.Exec(ctx, query, args)
 	if err != nil {
 		span.SetTag("error", true)
-		span.LogFields(log.Error(err))
-		r.log.Error().Err(err).Int64("model_id", model.ID).Msg("Failed to update model")
+		span.LogFields(
+			log.Error(err),
+			log.Object("model", model),
+		)
+		r.log.Error().Err(err).Interface("model", model).Msg("Failed to update model")
 		return err
 	}
 	return nil
